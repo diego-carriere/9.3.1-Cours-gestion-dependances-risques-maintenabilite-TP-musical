@@ -366,6 +366,9 @@ test métier ne casse quand un fournisseur change.
   suivant, seulement le tirage d'un autre mot-clé.
 - Pas de cache du profil utilisateur : si le service utilisateur tombe, on ne sait ni qui réveiller
   ni où ; la réponse est un 503, que l'ordonnanceur peut retenter.
+- Livraison « au moins une fois » : un canal qui dépasse son délai peut quand même livrer plus
+  tard, alors que le réessai ou le canal suivant livre aussi. L'utilisateur est alors réveillé
+  deux fois. Entre un doublon et un silence, le brief tranche : le silence n'est pas acceptable.
 - L'alerte opérateur est un log `Critical`. Un pager ou un ticket serait un autre
   `IOperatorAlerter`, sans rien changer ailleurs.
 - Le quota iTunes est local au processus : plusieurs instances de l'hôte se partageraient le

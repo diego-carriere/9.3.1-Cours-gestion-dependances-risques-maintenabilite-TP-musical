@@ -13,7 +13,7 @@ Prérequis : SDK .NET 10 (`global.json`), `jq` pour les scripts.
 
 ```bash
 dotnet build                     # échoue sur le moindre avertissement
-dotnet test                      # 259 tests, aucun appel réseau
+dotnet test                      # 314 tests, aucun appel réseau
 ./scripts/coverage.sh            # tests + seuil de couverture, rapport dans coverage/index.html
 ./licenses/audit.sh              # gate de licences (+ ./licenses/audit-canary.sh)
 ./licenses/notices.sh            # avis de licence distribués avec l'image (THIRD-PARTY-NOTICES.txt)
@@ -355,15 +355,15 @@ externes non contrôlées, isolées derrière `IMusicCatalog` et remplaçables p
 
 | Projet | Nature | Tests |
 |---|---|---|
-| `ReveilMusical.Domain.Tests` | unitaires (value objects, règle jour+météo, message, `Result`) + architecture | 76 |
-| `ReveilMusical.Application.Tests` | unitaires sur fakes (sélection, cascade, cas d'usage, options) + contrat des fakes | 35 |
-| `ReveilMusical.Infrastructure.Tests` | adaptateurs HTTP sur réponses réelles capturées, SDK simulés, décorateurs, failover, quotas, composition, isolation des DTO | 102 |
+| `ReveilMusical.Domain.Tests` | unitaires (value objects, règle jour+météo, message, `Result`) + architecture | 78 |
+| `ReveilMusical.Application.Tests` | unitaires sur fakes (sélection, cascade, cas d'usage, options) + contrat des fakes | 45 |
+| `ReveilMusical.Infrastructure.Tests` | adaptateurs HTTP sur réponses réelles capturées, SDK simulés, décorateurs, failover, quotas, composition, isolation des DTO | 134 |
 | `ReveilMusical.FakeVendors.Tests` | les trois SDK simulés | 18 |
-| `ReveilMusical.Api.E2ETests` | hôte complet en mémoire, seul le transport HTTP sortant est simulé | 28 |
+| `ReveilMusical.Api.E2ETests` | hôte complet en mémoire, seul le transport HTTP sortant est simulé | 39 |
 
-**259 tests, aucun appel réseau, environ 5 s en tout.** Couverture du code de production
-(`./scripts/coverage.sh`) : **97,3 % des lignes, 92,9 % des branches**, pour un seuil bloquant de
-90 % et 80 %. Par assembly : Application 100 %, Api 99,1 %, Infrastructure 98,1 %, Domaine 96,5 %,
+**314 tests, aucun appel réseau, environ 5 s en tout.** Couverture du code de production
+(`./scripts/coverage.sh`) : **97,4 % des lignes, 93,7 % des branches**, pour un seuil bloquant de
+90 % et 80 %. Par assembly : Application 100 %, Api 99,1 %, Infrastructure 98,1 %, Domaine 96,9 %,
 FakeVendors 86,8 % (les constructeurs standard d'exception, exigés par l'analyseur, ne servent pas).
 
 Les tests les plus démonstratifs :

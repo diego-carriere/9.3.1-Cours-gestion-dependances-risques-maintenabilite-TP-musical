@@ -1,0 +1,34 @@
+using ReveilMusical.Domain.Abstractions;
+using ReveilMusical.Domain.Model;
+using ReveilMusical.Domain.Results;
+
+namespace ReveilMusical.TestSupport;
+
+/// <summary>Canal scripté : réussit par défaut, échoue sur demande, et garde la trace de chaque envoi.</summary>
+public sealed class FakeNotificationChannel : INotificationChannel
+{
+    private DomainError? _failure;
+
+    public List<(ContactAddress Recipient, WakeUpMessage Message)> Sent { get; } = [];
+
+    public int Attempts { get; private set; }
+
+    public FakeNotificationChannel FailsWith(ErrorKind kind)
+    {
+        _failure = new DomainError(kind, $"Échec scripté ({kind}).");
+        return this;
+    }
+
+    public Task<Result<DeliveryReceipt>> SendAsync(ContactAddress recipient, WakeUpMessage message, CancellationToken cancellationToken)
+    {
+        Attempts++;
+
+        if (_failure is not null)
+        {
+            return Task.FromResult(Result.Failure<DeliveryReceipt>(_failure));
+        }
+
+        Sent.Add((recipient, message));
+        return Task.FromResult(Result.Success(new DeliveryReceipt($"fake-{Sent.Count}")));
+    }
+}

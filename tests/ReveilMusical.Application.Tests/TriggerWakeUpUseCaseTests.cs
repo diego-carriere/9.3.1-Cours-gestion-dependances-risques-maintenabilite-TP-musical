@@ -3,6 +3,7 @@ using ReveilMusical.Application.Music;
 using ReveilMusical.Application.Notifications;
 using ReveilMusical.Application.Options;
 using ReveilMusical.Application.WakeUp;
+using ReveilMusical.Domain.Abstractions;
 using ReveilMusical.Domain.Model;
 using ReveilMusical.Domain.Results;
 using ReveilMusical.TestSupport;
@@ -105,10 +106,35 @@ public sealed class TriggerWakeUpUseCaseTests
         Assert.Equal(ChannelId.Create("sms").Value, report.PreferredChannel);
     }
 
+    [Fact]
+    public async Task A_wake_up_cancelled_while_choosing_the_track_alerts_the_operator()
+    {
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            CreateSut().ExecuteAsync(Request("42", WeatherCondition.Sunny), cancellation.Token));
+
+        Assert.Equal(UserId.Create("42").Value, Assert.Single(_alerter.Alerts).UserId);
+        Assert.Equal(0, _sms.Attempts);
+    }
+
+    [Fact]
+    public async Task A_wake_up_cancelled_while_sending_alerts_the_operator()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var cancellingSms = new CancellingChannel(cancellation);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            CreateSut(cancellingSms).ExecuteAsync(Request("42", WeatherCondition.Sunny), cancellation.Token));
+
+        Assert.Equal(UserId.Create("42").Value, Assert.Single(_alerter.Alerts).UserId);
+    }
+
     private static WakeUpRequest Request(string userId, WeatherCondition weather) =>
         new(UserId.Create(userId).Value, DayOfWeek.Monday, weather);
 
-    private TriggerWakeUpUseCase CreateSut()
+    private TriggerWakeUpUseCase CreateSut(INotificationChannel? sms = null)
     {
         var options = Microsoft.Extensions.Options.Options.Create(new WakeUpOptions { FallbackChannels = ["sms", "email"] });
 
@@ -116,10 +142,22 @@ public sealed class TriggerWakeUpUseCaseTests
             _profiles,
             new TrackSelector(_catalog, _playlist, NullLogger<TrackSelector>.Instance),
             new NotificationDispatcher(
-                new FakeNotificationChannelResolver().With("sms", _sms).With("email", _email),
+                new FakeNotificationChannelResolver().With("sms", sms ?? _sms).With("email", _email),
                 _alerter,
                 options,
                 NullLogger<NotificationDispatcher>.Instance),
+            _alerter,
             new FakeClock(Now));
+    }
+
+    /// <summary>Un canal pendant l'envoi duquel l'appelant annule (arrêt de l'hôte, par exemple).</summary>
+    private sealed class CancellingChannel(CancellationTokenSource caller) : INotificationChannel
+    {
+        public async Task<Result<DeliveryReceipt>> SendAsync(ContactAddress recipient, WakeUpMessage message, CancellationToken cancellationToken)
+        {
+            await caller.CancelAsync();
+            cancellationToken.ThrowIfCancellationRequested();
+            return Result.Success(new DeliveryReceipt("never"));
+        }
     }
 }

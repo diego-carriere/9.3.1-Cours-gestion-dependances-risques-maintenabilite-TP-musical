@@ -177,6 +177,7 @@ dictionnaire n'ont pas besoin d'une Chain of Responsibility.
 | Canal figé (SDK bloquant qui ignore l'annulation) | Délai par tentative imposé par le décorateur, puis canal suivant | tentative `failed` |
 | Canal qui lève (bug d'adaptateur, disque plein) | Échec de ce canal, puis canal suivant | tentative `failed` |
 | Tous les canaux en panne | Alerte opérateur (log `Critical`) | 503 + `Retry-After` |
+| Arrêt de l'hôte pendant un réveil | L'arrêt attend la fin du réveil (90 s au plus) ; une annulation forcée alerte l'opérateur | réveil remis normalement |
 
 ## Correspondance cours → TP
 
@@ -244,8 +245,8 @@ implémentation. Un bug ou une panne imprévue (disque plein sous un SDK, adapta
 bien, mais ne peut pas rendre le réveil silencieux. Le décorateur de chaque canal la traite comme
 une panne (réessai, disjoncteur). En dernier filet côté métier, `NotificationDispatcher` et
 `TrackSelector` la journalisent en `Error` et passent au canal suivant ou à la playlist locale. Seule
-l'annulation demandée par l'appelant se propage. La traduction en HTTP tient dans un seul fichier,
-`Errors/WakeUpErrorMapper.cs`.
+l'annulation demandée par l'appelant se propage, et `TriggerWakeUpUseCase` alerte alors l'opérateur.
+La traduction en HTTP tient dans un seul fichier, `Errors/WakeUpErrorMapper.cs`.
 
 Un message d'erreur ne répète jamais une coordonnée (numéro, adresse, jeton d'appareil) : il part
 dans les journaux, dans l'alerte opérateur et dans `attempts[].detail` de la réponse. Données
@@ -265,13 +266,18 @@ La durée d'un réveil est bornée par les délais configurés, pas par la conne
 
 - **musique** : au plus 8 s par fournisseur essayé (`Resilience:Music:*:TotalTimeout`), et trois
   recherches au plus. Une panne de tous les fournisseurs (environ 16 s avec deux fournisseurs) mène
-  directement à la playlist locale ;
+  directement à la playlist locale. Le pire cas est un fournisseur figé suivi d'un autre qui répond
+  « rien trouvé » au bout de 8 s, trois fois de suite : environ 48 s ;
 - **canaux** : deux tentatives de 3 s par canal (`Resilience:Channels`), soit environ 6 s par canal
   et 19 s pour une cascade de trois canaux tous en panne.
 
-Dans le pire cas, ce total dépasse un délai client courant de 30 s. Le réveil ne suit donc pas
-`RequestAborted` : un ordonnanceur qui raccroche ne l'annule pas (`SchedulerDisconnectTests`). Seul
-l'arrêt de l'hôte l'interrompt (`ApplicationStopping`), et l'alerte opérateur n'est jamais annulée.
+Dans le pire cas, environ 67 s : plus qu'un délai client courant de 30 s. Le réveil ne suit donc ni
+`RequestAborted` (un ordonnanceur qui raccroche ne l'annule pas) ni `ApplicationStopping` (un
+déploiement ne l'annule pas) : voir `SchedulerDisconnectTests`. À l'arrêt, l'hôte attend la fin des
+réveils en vol (`HostOptions.ShutdownTimeout` à 90 s, `Program.cs`). L'orchestrateur doit laisser
+au moins autant (par exemple `terminationGracePeriodSeconds` sous Kubernetes, 30 s par défaut).
+Si un appelant annule quand même, `TriggerWakeUpUseCase` alerte l'opérateur avant de propager
+l'annulation : un réveil interrompu n'est jamais silencieux, et l'alerte n'est jamais annulée.
 Un délai dépassé côté ordonnanceur veut dire « en cours », pas « à refaire » : le relancer peut
 réveiller deux fois (livraison au moins une fois, voir « Simplifications assumées »).
 

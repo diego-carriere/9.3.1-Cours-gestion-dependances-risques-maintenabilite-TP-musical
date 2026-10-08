@@ -10,10 +10,11 @@ namespace ReveilMusical.Api.Endpoints;
 /// traduire : tout le travail est délégué à <see cref="ITriggerWakeUpUseCase"/>, injecté.
 /// </summary>
 /// <remarks>
-/// Le réveil n'est pas lié à la connexion de l'ordonnanceur (<c>RequestAborted</c>) : un client qui
-/// raccroche, sur un délai d'attente trop court par exemple, ne doit pas annuler un réveil en cours.
-/// Seul l'arrêt de l'hôte l'interrompt. La durée reste bornée par les délais des fournisseurs et des
-/// canaux (README, « Budget de latence »).
+/// Le réveil n'est lié ni à la connexion de l'ordonnanceur (<c>RequestAborted</c>) ni à l'arrêt de
+/// l'hôte (<c>ApplicationStopping</c>) : un client qui raccroche ou un déploiement ne doit pas annuler
+/// un réveil en cours. L'arrêt attend la fin des réveils en vol (<c>HostOptions.ShutdownTimeout</c>,
+/// Program.cs). La durée reste bornée par les délais des fournisseurs et des canaux (README,
+/// « Budget de latence »).
 /// </remarks>
 internal static class WakeUpEndpoint
 {
@@ -26,7 +27,6 @@ internal static class WakeUpEndpoint
     private static async Task<IResult> HandleAsync(
         WakeUpHttpRequest? body,
         ITriggerWakeUpUseCase useCase,
-        IHostApplicationLifetime lifetime,
         HttpResponse response)
     {
         if (!WakeUpRequestParser.TryParse(body, out var request, out var errors))
@@ -34,7 +34,7 @@ internal static class WakeUpEndpoint
             return Results.ValidationProblem(errors);
         }
 
-        var result = await useCase.ExecuteAsync(request!, lifetime.ApplicationStopping).ConfigureAwait(false);
+        var result = await useCase.ExecuteAsync(request!, CancellationToken.None).ConfigureAwait(false);
         if (result.IsFailure)
         {
             return WakeUpErrorMapper.ToProblem(result.Error, response);

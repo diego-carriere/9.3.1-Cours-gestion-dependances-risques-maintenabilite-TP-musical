@@ -19,6 +19,10 @@ builder.Host.UseDefaultServiceProvider(options =>
 builder.Services.AddApplication(options => builder.Configuration.GetSection(WakeUpOptions.SectionName).Bind(options));
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Un arrêt (déploiement, scale-in) attend la fin des réveils en vol au lieu de les annuler. Un réveil
+// dure au pire environ 67 s (README, « Budget de latence ») : la marge couvre ce pire cas.
+builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(90));
+
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
 

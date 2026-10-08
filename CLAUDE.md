@@ -13,7 +13,8 @@ actually matters to the task and its text is unreadable.
 
 "Réveil musical", the second practical exercise of the course "Gestion des dépendances, risques et
 maintenabilité". It is a standalone repo, split from the sibling course repo `../TP-cours/`, whose `TP-meteo/`
-holds the first exercise (TP1–TP4). No code exists yet.
+holds the first exercise (TP1–TP4). The solution is `ReveilMusical.slnx`; `README.md` documents the
+architecture, the selection rule and the dependency review.
 
 - `documentation/TP_reveil_musical.md`: the brief, summarised below.
 - `documentation/Support J2.md`: the course deck. It repeats all of `Support J1.md` and then adds Day 2
@@ -35,13 +36,14 @@ holds the first exercise (TP1–TP4). No code exists yet.
   `IHttpClientFactory` (TP-meteo adds `Microsoft.Extensions.Http.Resilience`).
 - xunit.v3 on Microsoft.Testing.Platform (`global.json` `test.runner`), coverage through coverlet.MTP. Tests run offline with a faked HTTP transport, and one contract suite runs against
   every implementation of a port.
-- Licence gate: TP-meteo's `licenses/audit.sh` (`dotnet-project-licenses` as a local tool, a whitelist, CI
-  failure on anything else, plus a GPL canary) is the model.
+- Licence gate: `licenses/audit.sh` (`nuget-license` as a local tool, a whitelist, CI failure on anything else,
+  plus a GPL canary in `licenses/audit-canary.sh`). TP-meteo's `dotnet-project-licenses` was replaced: its repo
+  declares itself abandoned. Freshness gate: `licenses/freshness.sh`.
 
 Commands, from the repo root, once the solution exists:
 
 - `dotnet build`: fails on any warning
-- `dotnet test`; for a single test, `dotnet test --filter "FullyQualifiedName~<Class>.<Method>"`
+- `dotnet test`; for a single test, target its project: `dotnet test --project tests/<Project> --filter "FullyQualifiedName~<Class>.<Method>"` (under Microsoft.Testing.Platform a project where the filter matches nothing exits 8)
 - `./scripts/coverage.sh`: coverage with the blocking threshold, HTML report in `coverage/` (the brief asks for good coverage)
 - `dotnet list package --include-transitive --outdated` (and `--vulnerable`): input for the README table
 

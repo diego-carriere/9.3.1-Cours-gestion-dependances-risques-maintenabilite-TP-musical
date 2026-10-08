@@ -1,7 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using ReveilMusical.Domain.Abstractions;
+using ReveilMusical.Infrastructure.Music;
 using ReveilMusical.Infrastructure.Notifications;
+using ReveilMusical.Infrastructure.Time;
+using ReveilMusical.Infrastructure.Users;
 
 namespace ReveilMusical.Infrastructure;
 
@@ -13,7 +17,13 @@ public static class InfrastructureServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddUserDirectory(configuration);
+        services.AddMusic(configuration);
         services.AddNotifications(configuration);
+
+        // Singletons sans état ni dépendance : aucun risque de dépendance captive.
+        services.TryAddSingleton<IClock, SystemClock>();
+        services.TryAddSingleton<IRandom, SystemRandom>();
 
         return services;
     }

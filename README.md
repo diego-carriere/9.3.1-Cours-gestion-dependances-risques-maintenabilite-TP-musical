@@ -172,7 +172,7 @@ dictionnaire n'ont pas besoin d'une Chain of Responsibility.
 |---|---|---|
 | iTunes en panne ou quota atteint | MusicBrainz prend le relais (failover) | `trackSource: catalog` |
 | Fournisseur en panne, recherche déjà faite | Résultat périmé servi depuis le cache | `trackSource: catalog` |
-| Tous les fournisseurs en panne | Playlist locale | `trackSource: local-playlist`, `degraded: true` |
+| Tous les fournisseurs en panne | Playlist locale | `trackSource: local-playlist`, `preference: null` (l'utilisateur ne l'a pas choisi), `degraded: true` |
 | Canal préféré en panne | Canal suivant de la cascade | `channel` ≠ canal préféré, `degraded: true` |
 | Canal figé (SDK bloquant qui ignore l'annulation) | Délai par tentative imposé par le décorateur, puis canal suivant | tentative `failed` |
 | Canal qui lève (bug d'adaptateur, disque plein) | Échec de ce canal, puis canal suivant | tentative `failed` |

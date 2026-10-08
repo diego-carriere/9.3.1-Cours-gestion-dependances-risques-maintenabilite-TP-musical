@@ -12,7 +12,8 @@ public enum TrackSource
 }
 
 /// <summary>
-/// Le morceau retenu, d'où il vient, le niveau de préférence de l'utilisateur, et le morceau demandé
-/// qui l'a donné (<c>null</c> pour la playlist locale).
+/// Le morceau retenu, d'où il vient, le niveau de préférence de l'utilisateur qui l'a donné, et le
+/// morceau demandé. Niveau et morceau demandé sont <c>null</c> pour la playlist locale : ce morceau,
+/// l'utilisateur ne l'a pas choisi.
 /// </summary>
-public sealed record TrackChoice(Track Track, TrackSource Source, PreferenceLevel Level, TrackRequest? Request);
+public sealed record TrackChoice(Track Track, TrackSource Source, PreferenceLevel? Level, TrackRequest? Request);

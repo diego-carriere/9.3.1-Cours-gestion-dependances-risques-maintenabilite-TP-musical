@@ -40,7 +40,7 @@ public sealed partial class TrackSelector
                 // Un fournisseur en panne ne répondra pas mieux au morceau suivant : on ne brûle pas
                 // le quota, on passe directement au dernier recours.
                 LogCatalogUnavailable(search.Error.Message);
-                return FromLocalPlaylist(weather, candidates[0].Level);
+                return FromLocalPlaylist(weather);
             }
 
             if (search.Value.Count > 0)
@@ -51,7 +51,7 @@ public sealed partial class TrackSelector
         }
 
         LogNothingFound(profile.Id.Value);
-        return FromLocalPlaylist(weather, candidates[0].Level);
+        return FromLocalPlaylist(weather);
     }
 
     /// <summary>
@@ -71,8 +71,8 @@ public sealed partial class TrackSelector
         }
     }
 
-    private TrackChoice FromLocalPlaylist(WeatherCondition weather, PreferenceLevel level) =>
-        new(_fallbackPlaylist.Pick(weather), TrackSource.LocalPlaylist, level, null);
+    private TrackChoice FromLocalPlaylist(WeatherCondition weather) =>
+        new(_fallbackPlaylist.Pick(weather), TrackSource.LocalPlaylist, Level: null, Request: null);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Music catalog threw instead of returning a result.")]
     private partial void LogCatalogThrew(Exception exception);

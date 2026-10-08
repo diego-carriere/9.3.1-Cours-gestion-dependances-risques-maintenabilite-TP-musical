@@ -72,6 +72,7 @@ public sealed class WakeUpEndpointTests
         Assert.Equal("local-playlist", json.Str("track.source"));
         Assert.Equal("Here Comes the Sun", json.Str("track.title"));
         Assert.Equal("null", json.Str("track.requested"));
+        Assert.Equal("null", json.Str("track.preference"));
         Assert.Equal("true", json.Str("degraded"));
         Assert.Equal("true", json.Str("delivered"));
     }

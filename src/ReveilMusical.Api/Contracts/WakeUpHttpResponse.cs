@@ -12,7 +12,7 @@ internal sealed record WakeUpHttpResponse(
     TrackHttpResponse Track,
     NotificationHttpResponse Notification);
 
-internal sealed record TrackHttpResponse(string Title, string Artist, string Source, string Preference, string? Requested);
+internal sealed record TrackHttpResponse(string Title, string Artist, string Source, string? Preference, string? Requested);
 
 internal sealed record NotificationHttpResponse(
     string PreferredChannel,

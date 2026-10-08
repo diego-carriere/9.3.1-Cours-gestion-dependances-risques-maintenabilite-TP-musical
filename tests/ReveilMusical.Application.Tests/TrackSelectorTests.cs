@@ -80,7 +80,7 @@ public sealed class TrackSelectorTests
 
         Assert.Single(_catalog.Searches);
         Assert.Equal(TrackSource.LocalPlaylist, choice.Source);
-        Assert.Equal(PreferenceLevel.Fallback, choice.Level);
+        Assert.Null(choice.Level); // la playlist locale n'est pas un choix de l'utilisateur
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public sealed class TrackSelectorTests
         var choice = await CreateSut().SelectAsync(profile, DayOfWeek.Tuesday, WeatherCondition.Rainy, CancellationToken.None);
 
         Assert.Single(_catalog.Searches); // pas d'acharnement sur un fournisseur en panne
-        Assert.Equal(new TrackChoice(FakeFallbackPlaylist.DefaultTrack, TrackSource.LocalPlaylist, PreferenceLevel.Weather, null), choice);
+        Assert.Equal(new TrackChoice(FakeFallbackPlaylist.DefaultTrack, TrackSource.LocalPlaylist, null, null), choice);
         Assert.Equal([WeatherCondition.Rainy], _playlist.Picks);
     }
 
@@ -111,7 +111,7 @@ public sealed class TrackSelectorTests
         var choice = await CreateSut().SelectAsync(profile, DayOfWeek.Sunday, WeatherCondition.Sunny, CancellationToken.None);
 
         Assert.Equal(["Introuvable 2", "Introuvable 1", "Introuvable 3"], _catalog.Searches.Select(r => r.Title));
-        Assert.Equal(new TrackChoice(FakeFallbackPlaylist.DefaultTrack, TrackSource.LocalPlaylist, PreferenceLevel.DayAndWeather, null), choice);
+        Assert.Equal(new TrackChoice(FakeFallbackPlaylist.DefaultTrack, TrackSource.LocalPlaylist, null, null), choice);
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public sealed class TrackSelectorTests
 
         var choice = await CreateSut().SelectAsync(profile, DayOfWeek.Tuesday, WeatherCondition.Rainy, CancellationToken.None);
 
-        Assert.Equal(new TrackChoice(FakeFallbackPlaylist.DefaultTrack, TrackSource.LocalPlaylist, PreferenceLevel.Weather, null), choice);
+        Assert.Equal(new TrackChoice(FakeFallbackPlaylist.DefaultTrack, TrackSource.LocalPlaylist, null, null), choice);
     }
 
     [Fact]

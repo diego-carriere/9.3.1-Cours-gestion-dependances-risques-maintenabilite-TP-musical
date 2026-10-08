@@ -45,7 +45,8 @@ Commands, from the repo root, once the solution exists:
 - `dotnet test --collect:"XPlat Code Coverage"`: coverage (the brief asks for good coverage)
 - `dotnet list package --include-transitive --outdated` (and `--vulnerable`): input for the README table
 
-Commits use plain conventional commits, e.g. `feat(infra): iTunes adapter`, with no `[TP-…]` prefix.
+Commits use plain conventional commits, e.g. `feat(infra): iTunes adapter`, with no `[TP-…]` prefix. Never add
+Claude as a co-author: no `Co-Authored-By: Claude …` trailer in commit messages.
 
 Working discipline carried over from TP-meteo: settle the architectural choices (patterns, SOLID, conventions)
 and justify each against the brief's constraints in `README.md` before coding. Keep `README.md` in sync with the

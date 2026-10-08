@@ -49,6 +49,12 @@ public readonly record struct Result<T>
         ? _error!
         : throw new InvalidOperationException("Cannot access Error of a successful Result.");
 
+    /// <summary>
+    /// Remplace le ToString synthétisé du record, qui lirait <see cref="Value"/> et lèverait sur un
+    /// échec : un résultat doit toujours pouvoir être journalisé (Polly le fait à chaque tentative).
+    /// </summary>
+    public override string ToString() => IsSuccess ? $"Success({_value})" : $"Failure({_error!.Kind}: {_error.Message})";
+
     internal static Result<T> CreateSuccess(T value) => new(true, value, null);
 
     internal static Result<T> CreateFailure(DomainError error) => new(false, default, error);

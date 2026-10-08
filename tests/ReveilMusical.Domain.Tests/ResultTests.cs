@@ -38,4 +38,13 @@ public sealed class ResultTests
 
         Assert.Throws<InvalidOperationException>(() => result.Error);
     }
+
+    [Fact]
+    public void ToString_never_throws_so_a_failure_can_be_logged()
+    {
+        // Polly journalise le résultat de chaque tentative : le ToString synthétisé d'un record
+        // lirait Value et lèverait sur un échec.
+        Assert.Equal("Failure(Timeout: trop long)", Result.Failure<int>(ErrorKind.Timeout, "trop long").ToString());
+        Assert.Equal("Success(42)", Result.Success(42).ToString());
+    }
 }

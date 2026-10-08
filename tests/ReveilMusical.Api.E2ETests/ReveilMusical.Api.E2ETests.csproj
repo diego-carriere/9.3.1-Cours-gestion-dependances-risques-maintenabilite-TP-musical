@@ -9,6 +9,11 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- Les mêmes réponses réelles capturées que les tests d'Infrastructure, sans copie. -->
+  <ItemGroup>
+    <None Include="..\ReveilMusical.Infrastructure.Tests\Fixtures\*.json" Link="Fixtures\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="coverlet.MTP" />
     <PackageReference Include="xunit.v3" />

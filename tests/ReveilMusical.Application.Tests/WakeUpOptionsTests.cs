@@ -14,19 +14,9 @@ public sealed class WakeUpOptionsTests
     [Fact]
     public void Valid_options_pass_validation()
     {
-        var result = new WakeUpOptionsValidator().Validate(null, new WakeUpOptions { MaxSearchAttempts = 3, FallbackChannels = ["push", "sms"] });
+        var result = new WakeUpOptionsValidator().Validate(null, new WakeUpOptions { FallbackChannels = ["push", "sms"] });
 
         Assert.True(result.Succeeded);
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(11)]
-    public void A_search_budget_outside_1_to_10_is_rejected(int attempts)
-    {
-        var result = new WakeUpOptionsValidator().Validate(null, new WakeUpOptions { MaxSearchAttempts = attempts });
-
-        Assert.True(result.Failed);
     }
 
     [Fact]
@@ -51,7 +41,7 @@ public sealed class WakeUpOptionsTests
     [Fact]
     public void AddApplication_refuses_invalid_options()
     {
-        using var provider = BuildProvider(o => o.MaxSearchAttempts = 0);
+        using var provider = BuildProvider(o => o.FallbackChannels = ["push notif"]);
 
         Assert.Throws<OptionsValidationException>(() => provider.GetRequiredService<IOptions<WakeUpOptions>>().Value);
     }

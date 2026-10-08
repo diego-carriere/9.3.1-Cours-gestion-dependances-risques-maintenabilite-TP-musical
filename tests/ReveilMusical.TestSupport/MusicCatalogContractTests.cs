@@ -12,7 +12,7 @@ namespace ReveilMusical.TestSupport;
 /// </summary>
 public abstract class MusicCatalogContractTests
 {
-    protected static readonly Keyword SampleKeyword = Keyword.Create("soleil").Value;
+    protected static readonly TrackRequest SampleRequest = TrackRequest.Create("Soleil").Value;
 
     /// <summary>Une instance dont le fournisseur est injoignable.</summary>
     protected abstract IMusicCatalog CreateSutWhoseProviderIsDown();
@@ -23,7 +23,7 @@ public abstract class MusicCatalogContractTests
     [Fact]
     public async Task An_unreachable_provider_is_an_expected_failure_never_an_exception()
     {
-        var result = await CreateSutWhoseProviderIsDown().SearchAsync(SampleKeyword, CancellationToken.None);
+        var result = await CreateSutWhoseProviderIsDown().SearchAsync(SampleRequest, CancellationToken.None);
 
         Assert.True(result.IsFailure);
         Assert.Contains(result.Error.Kind, new[] { ErrorKind.ProviderUnavailable, ErrorKind.Timeout });
@@ -32,7 +32,7 @@ public abstract class MusicCatalogContractTests
     [Fact]
     public async Task No_match_is_an_empty_success_not_a_failure()
     {
-        var result = await CreateSutWithNoMatch().SearchAsync(SampleKeyword, CancellationToken.None);
+        var result = await CreateSutWithNoMatch().SearchAsync(SampleRequest, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Empty(result.Value);

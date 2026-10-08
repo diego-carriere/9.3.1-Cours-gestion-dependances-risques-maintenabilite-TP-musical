@@ -15,7 +15,7 @@ internal static class WakeUpResponseMapper
             report.Track.Track.Artist,
             Kebab(report.Track.Source),
             Kebab(report.Track.Level),
-            report.Track.Keyword?.Value),
+            report.Track.Request?.ToString()),
         new NotificationHttpResponse(
             report.PreferredChannel.Value,
             report.Dispatch.DeliveredOn?.Value,

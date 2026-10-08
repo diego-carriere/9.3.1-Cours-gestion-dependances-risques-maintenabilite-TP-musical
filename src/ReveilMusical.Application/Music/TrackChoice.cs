@@ -11,5 +11,8 @@ public enum TrackSource
     LocalPlaylist,
 }
 
-/// <summary>Le morceau retenu, d'où il vient, et le mot-clé qui l'a donné (<c>null</c> pour la playlist locale).</summary>
-public sealed record TrackChoice(Track Track, TrackSource Source, PreferenceLevel Level, Keyword? Keyword);
+/// <summary>
+/// Le morceau retenu, d'où il vient, le niveau de préférence de l'utilisateur, et le morceau demandé
+/// qui l'a donné (<c>null</c> pour la playlist locale).
+/// </summary>
+public sealed record TrackChoice(Track Track, TrackSource Source, PreferenceLevel Level, TrackRequest? Request);

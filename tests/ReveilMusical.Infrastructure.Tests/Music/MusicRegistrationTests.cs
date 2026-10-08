@@ -30,8 +30,8 @@ public sealed class MusicRegistrationTests : IDisposable
         using var provider = BuildProvider();
 
         var catalog = provider.GetRequiredService<IMusicCatalog>();
-        var first = await catalog.SearchAsync(Keyword.Create("soleil").Value, TestContext.Current.CancellationToken);
-        var second = await catalog.SearchAsync(Keyword.Create("Soleil").Value, TestContext.Current.CancellationToken);
+        var first = await catalog.SearchAsync(TrackRequest.Create("soleil").Value, TestContext.Current.CancellationToken);
+        var second = await catalog.SearchAsync(TrackRequest.Create("Soleil").Value, TestContext.Current.CancellationToken);
 
         Assert.IsType<FailoverMusicCatalog>(catalog);
         Assert.Equal(3, first.Value.Count);
@@ -47,7 +47,7 @@ public sealed class MusicRegistrationTests : IDisposable
         _musicBrainz.Enqueue(Fixture.Json(Fixture.Read("musicbrainz-recording-soleil.json")));
         using var provider = BuildProvider();
 
-        var result = await provider.GetRequiredService<IMusicCatalog>().SearchAsync(Keyword.Create("soleil").Value, TestContext.Current.CancellationToken);
+        var result = await provider.GetRequiredService<IMusicCatalog>().SearchAsync(TrackRequest.Create("soleil").Value, TestContext.Current.CancellationToken);
 
         Assert.Equal("Ilya", result.Value[1].Artist);
         Assert.Equal(2, _itunes.CallCount); // une tentative + un réessai sur 5xx
@@ -59,7 +59,7 @@ public sealed class MusicRegistrationTests : IDisposable
         _itunes.Enqueue(new HttpResponseMessage(HttpStatusCode.BadRequest));
         using var provider = BuildProvider(("Music:Providers:1", null));
 
-        var result = await provider.GetRequiredService<IMusicCatalog>().SearchAsync(Keyword.Create("soleil").Value, TestContext.Current.CancellationToken);
+        var result = await provider.GetRequiredService<IMusicCatalog>().SearchAsync(TrackRequest.Create("soleil").Value, TestContext.Current.CancellationToken);
 
         Assert.True(result.IsFailure);
         Assert.Equal(1, _itunes.CallCount);
@@ -72,8 +72,8 @@ public sealed class MusicRegistrationTests : IDisposable
         using var provider = BuildProvider(("Music:ITunes:RequestsPerMinute", "1"), ("Music:Providers:1", null));
         var itunes = provider.GetRequiredKeyedService<IMusicCatalog>("itunes");
 
-        await itunes.SearchAsync(Keyword.Create("a").Value, TestContext.Current.CancellationToken);
-        var rejected = await itunes.SearchAsync(Keyword.Create("b").Value, TestContext.Current.CancellationToken);
+        await itunes.SearchAsync(TrackRequest.Create("a").Value, TestContext.Current.CancellationToken);
+        var rejected = await itunes.SearchAsync(TrackRequest.Create("b").Value, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorKind.ProviderUnavailable, rejected.Error.Kind);
         Assert.Contains("quota", rejected.Error.Message, StringComparison.OrdinalIgnoreCase);

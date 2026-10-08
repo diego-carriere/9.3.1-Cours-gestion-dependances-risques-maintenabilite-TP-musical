@@ -11,8 +11,7 @@ namespace ReveilMusical.Infrastructure.Music;
 /// Decorator : met en cache les recherches d'un fournisseur (le brief : « ~20 requêtes/minute, à
 /// respecter côté cache »). Une entrée fraîche épargne l'appel ; une entrée périmée est resservie
 /// si le fournisseur tombe. La clé contient le fournisseur : deux fournisseurs ne partagent rien, et
-/// l'Application n'a pas à le savoir. Le tirage au hasard a lieu après, dans l'Application : les
-/// réveils restent variés sans rappeler le fournisseur.
+/// l'Application n'a pas à le savoir.
 /// </summary>
 internal sealed partial class CachedMusicCatalog : IMusicCatalog
 {
@@ -39,9 +38,9 @@ internal sealed partial class CachedMusicCatalog : IMusicCatalog
         _logger = logger;
     }
 
-    public async Task<Result<IReadOnlyList<Track>>> SearchAsync(Keyword keyword, CancellationToken cancellationToken)
+    public async Task<Result<IReadOnlyList<Track>>> SearchAsync(TrackRequest request, CancellationToken cancellationToken)
     {
-        var key = $"music:{_providerKey}:{keyword.Normalized}";
+        var key = $"music:{_providerKey}:{request.Normalized}";
         var cached = _cache.TryGetValue(key, out CachedSearch? entry) ? entry : null;
 
         if (cached is not null && _clock.UtcNow - cached.StoredAtUtc < _options.Freshness)
@@ -49,7 +48,7 @@ internal sealed partial class CachedMusicCatalog : IMusicCatalog
             return Result.Success(cached.Tracks);
         }
 
-        var fresh = await _inner.SearchAsync(keyword, cancellationToken).ConfigureAwait(false);
+        var fresh = await _inner.SearchAsync(request, cancellationToken).ConfigureAwait(false);
 
         if (fresh.IsSuccess)
         {
@@ -59,15 +58,15 @@ internal sealed partial class CachedMusicCatalog : IMusicCatalog
 
         if (cached is not null)
         {
-            LogServingStale(_providerKey, keyword.Value);
+            LogServingStale(_providerKey, request.ToString());
             return Result.Success(cached.Tracks);
         }
 
         return fresh;
     }
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "Provider '{Provider}' failed; serving a stale search for '{Keyword}'.")]
-    private partial void LogServingStale(string provider, string keyword);
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Provider '{Provider}' failed; serving a stale search for '{Track}'.")]
+    private partial void LogServingStale(string provider, string track);
 
     private sealed record CachedSearch(IReadOnlyList<Track> Tracks, DateTimeOffset StoredAtUtc);
 }

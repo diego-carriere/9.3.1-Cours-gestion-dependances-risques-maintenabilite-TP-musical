@@ -11,7 +11,7 @@ namespace ReveilMusical.Infrastructure.Tests.Music;
 public sealed class CachedMusicCatalogTests : IDisposable
 {
     private static readonly Track Sun = new("Soleil", "GIMS");
-    private static readonly Keyword Soleil = Keyword.Create("soleil").Value;
+    private static readonly TrackRequest Soleil = TrackRequest.Create("soleil").Value;
 
     private readonly MemoryCache _cache = new(new MemoryCacheOptions());
     private readonly FakeClock _clock = new(new DateTimeOffset(2026, 10, 8, 6, 0, 0, TimeSpan.Zero));
@@ -24,7 +24,7 @@ public sealed class CachedMusicCatalogTests : IDisposable
         var sut = Wrap(inner);
 
         await sut.SearchAsync(Soleil, TestContext.Current.CancellationToken);
-        var second = await sut.SearchAsync(Keyword.Create("SOLEIL").Value, TestContext.Current.CancellationToken);
+        var second = await sut.SearchAsync(TrackRequest.Create("SOLEIL").Value, TestContext.Current.CancellationToken);
 
         Assert.Equal([Sun], second.Value);
         Assert.Single(inner.Searches);

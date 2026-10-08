@@ -20,7 +20,7 @@ public sealed class CompositionTests
     [Theory]
     [InlineData("Music:MusicBrainz:UserAgent", "", "UserAgent")]
     [InlineData("Music:Providers:0", "spotify", "spotify")]
-    [InlineData("Wakeup:MaxSearchAttempts", "0", "MaxSearchAttempts")]
+    [InlineData("Wakeup:FallbackChannels:0", "push notif", "push notif")]
     [InlineData("UserService:Users:0:PreferredChannel", "pigeon voyageur", "Users:0")]
     public async Task The_application_refuses_to_start_on_invalid_configuration(string key, string value, string expectedInMessage)
     {

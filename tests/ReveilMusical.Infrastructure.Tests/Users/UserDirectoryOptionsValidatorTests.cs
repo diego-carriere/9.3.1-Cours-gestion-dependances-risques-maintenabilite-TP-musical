@@ -16,11 +16,13 @@ public sealed class UserDirectoryOptionsValidatorTests
         { "canal préféré invalide", r => r.PreferredChannel = "push notif" },
         { "canal de contact invalide", r => r.Contacts["sms!"] = "+33612345678" },
         { "contact vide", r => r.Contacts["sms"] = "" },
-        { "météo inconnue", r => r.KeywordsByWeather["BROUILLARD"] = ["x"] },
-        { "jour inconnu", r => r.KeywordsByDayAndWeather["MONDAY+PLUIE"] = ["x"] },
-        { "clé jour+météo sans séparateur", r => r.KeywordsByDayAndWeather["LUNDI"] = ["x"] },
-        { "mots-clés vides", r => r.KeywordsByWeather["SOLEIL"] = [] },
-        { "secours vide", r => r.FallbackKeywords = [] },
+        { "météo inconnue", r => r.TracksByWeather["BROUILLARD"] = new() { Title = "x" } },
+        { "jour inconnu", r => r.TracksByDayAndWeather["MONDAY+PLUIE"] = new() { Title = "x" } },
+        { "clé jour+météo sans séparateur", r => r.TracksByDayAndWeather["LUNDI"] = new() { Title = "x" } },
+        { "morceau sans titre", r => r.TracksByWeather["SOLEIL"] = new() { Artist = "The Beatles" } },
+        { "surcharge sans titre", r => r.TracksByDayAndWeather["LUNDI+PLUIE"] = new() { Title = " " } },
+        { "secours absent", r => r.FallbackTrack = null },
+        { "secours sans titre", r => r.FallbackTrack = new() { Title = "" } },
     };
 
     [Theory]

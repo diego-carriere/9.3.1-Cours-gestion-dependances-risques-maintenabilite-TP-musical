@@ -34,8 +34,8 @@ curl -X POST http://localhost:5089/wake-ups -H 'Content-Type: application/json' 
 ```json
 {
   "userId": "42", "delivered": true, "degraded": false,
-  "track": { "title": "Blues", "artist": "Aya Nakamura", "source": "catalog",
-             "preference": "day-and-weather", "keyword": "blues" },
+  "track": { "title": "Manic Monday", "artist": "The Bangles", "source": "catalog",
+             "preference": "day-and-weather", "requested": "Manic Monday — The Bangles" },
   "notification": { "preferredChannel": "push", "deliveredOn": "push", "operatorAlerted": false,
                     "attempts": [ { "channel": "push", "status": "delivered", "detail": "push-5815…" } ] }
 }
@@ -45,8 +45,8 @@ Utilisateurs de démonstration (`appsettings.json`, section `UserService`, le se
 
 | ID | Nom | Canal préféré | Contacts | Particularité |
 |---|---|---|---|---|
-| 42 | Alice | push | push, sms, email | surcharge `LUNDI+PLUIE` → `[monday, blues]` |
-| 7 | Bruno | sms | sms, email | couvre `NUAGEUX` et une surcharge `VENDREDI+SOLEIL` ; les autres cas passent par ses mots-clés de secours |
+| 42 | Alice | push | push, sms, email | un morceau pour `SOLEIL`, `PLUIE` et `NEIGE` ; surcharge `LUNDI+PLUIE` → *Manic Monday* |
+| 7 | Bruno | sms | sms, email | couvre `NUAGEUX` et une surcharge `VENDREDI+SOLEIL` ; les autres cas passent par son morceau de secours |
 | 13 | Chloé | email | email seul | aucune cascade possible : une panne mail déclenche l'alerte opérateur |
 
 Les envois simulés s'écrivent sur la console et dans `outbox/{mail,sms,push}.log`, relatif au
@@ -75,34 +75,40 @@ d'environnement possibles, par exemple `Vendors__Push__SimulateOutage=true`).
 
 ## Règle de choix du morceau
 
-Le brief ne dit pas comment le jour de la semaine intervient. Règle retenue :
+Le brief : le service utilisateur renvoie « le morceau choisi par l'utilisateur pour chaque type de
+météo, un morceau de secours pour les cas non couverts ». Il ne dit pas comment le jour de la
+semaine intervient. Règle retenue :
 
-1. Le service utilisateur renvoie, pour chaque utilisateur, des **mots-clés** :
-   - par météo (par exemple `SOLEIL → [soleil, beau temps, sunshine]`) ;
-   - des surcharges par **jour + météo** (par exemple `LUNDI+PLUIE → [monday, blues]`) ;
-   - des mots-clés **de secours**.
-2. Le jeu de mots-clés est résolu du plus précis au plus général : jour+météo, puis météo, puis secours.
-3. Un mot-clé est tiré au hasard, puis recherché chez le fournisseur musical actif. Un morceau est
-   ensuite tiré au hasard parmi les résultats.
-4. Si une recherche ne renvoie rien, on tire un autre mot-clé du même jeu, puis on passe aux mots-clés de
-   secours. Le nombre de recherches est borné (`Wakeup:MaxSearchAttempts`) pour protéger les quotas
-   des fournisseurs.
-5. Si aucun fournisseur ne répond (panne, quota épuisé), on prend un morceau de la **playlist locale**,
-   étiquetée par météo. Le réveil part quand même, en mode dégradé.
+1. Le service utilisateur renvoie, pour chaque utilisateur, des **morceaux** (un titre, et
+   l'artiste s'il est connu) :
+   - un par météo (par exemple `SOLEIL → Here Comes the Sun — The Beatles`) ;
+   - des surcharges par **jour + météo** (par exemple `LUNDI+PLUIE → Manic Monday — The Bangles`) :
+     c'est par elles que le jour intervient ;
+   - un morceau **de secours**.
+2. Les morceaux sont essayés du plus précis au plus général : jour+météo, puis météo, puis secours.
+3. Chaque morceau est recherché chez le fournisseur musical actif, qui renvoie le titre et l'artiste
+   tels qu'il les connaît. On garde le **premier résultat** : le fournisseur les classe par
+   pertinence.
+4. Si le fournisseur ne trouve pas un morceau, on passe au niveau suivant. Il y a donc au plus trois
+   recherches par réveil, ce qui protège les quotas des fournisseurs.
+5. Si aucun fournisseur ne répond (panne, quota épuisé), on prend un morceau de la **playlist
+   locale**, étiquetée par météo. Le réveil part quand même, en mode dégradé.
 
-Exemple pour un profil donné :
+Exemple avec Alice, l'utilisateur 42 de démonstration :
 
 ```
-parMeteo        SOLEIL -> [soleil, beau temps, sunshine]   PLUIE -> [pluie, rain, storm]
-parJourEtMeteo  LUNDI+PLUIE -> [monday, blues]
-secours         [wake up, morning]
+parMeteo        SOLEIL -> Here Comes the Sun — The Beatles   PLUIE -> Set Fire to the Rain — Adele
+parJourEtMeteo  LUNDI+PLUIE -> Manic Monday — The Bangles
+secours         Wake Me Up — Avicii
 
-LUNDI + PLUIE  -> [monday, blues]            (jour+météo)
-MARDI + PLUIE  -> [pluie, rain, storm]       (météo)
-MARDI + NEIGE  -> [wake up, morning]         (secours)
+LUNDI + PLUIE    -> Manic Monday           (jour+météo ; s'il est introuvable : Set Fire to the Rain, puis Wake Me Up)
+MARDI + PLUIE    -> Set Fire to the Rain   (météo ; s'il est introuvable : Wake Me Up)
+MARDI + NUAGEUX  -> Wake Me Up             (secours)
 ```
 
-Le hasard passe par le port `IRandom` : en test, il est scripté, donc chaque tirage est déterministe.
+Le choix ne fait intervenir aucun hasard : le même jour et la même météo donnent le morceau que
+l'utilisateur a choisi. Seule la playlist locale tire au hasard, par le port `IRandom`, scripté en
+test.
 
 ## Architecture en couches
 
@@ -308,7 +314,7 @@ externes non contrôlées, isolées derrière `IMusicCatalog` et remplaçables p
 
 | Service | Conditions (vérifiées le 2026-10-08) | Traduction dans le code |
 |---|---|---|
-| **iTunes Search API** (Apple) | Gratuite, sans clé. Environ **20 requêtes/minute** (« subject to change »). Le contenu promotionnel (extraits, pochettes) ne sert qu'à promouvoir la boutique, avec attribution et un badge iTunes à proximité, en streaming seulement. Source : [performance-partners.apple.com/search-api](https://performance-partners.apple.com/search-api). | Limiteur à 20 req/min, cache 24 h par mot-clé. Seuls le titre et l'artiste sont repris : aucun extrait, aucune pochette, aucun `trackViewUrl` n'est servi, ce qui reste en deçà des usages encadrés. Le passage en production d'un usage promotionnel demanderait une relecture juridique. |
+| **iTunes Search API** (Apple) | Gratuite, sans clé. Environ **20 requêtes/minute** (« subject to change »). Le contenu promotionnel (extraits, pochettes) ne sert qu'à promouvoir la boutique, avec attribution et un badge iTunes à proximité, en streaming seulement. Source : [performance-partners.apple.com/search-api](https://performance-partners.apple.com/search-api). | Limiteur à 20 req/min, cache 24 h par morceau demandé. Seuls le titre et l'artiste sont repris : aucun extrait, aucune pochette, aucun `trackViewUrl` n'est servi, ce qui reste en deçà des usages encadrés. Le passage en production d'un usage promotionnel demanderait une relecture juridique. |
 | **MusicBrainz API** (MetaBrainz Foundation) | En moyenne **1 requête/seconde par IP** ; au-delà, 503. Un **User-Agent identifiable** (« Application/version ( contact ) ») est exigé. Les données cœur (enregistrements, titres, artistes) sont sous **CC0**, les données complémentaires sous CC BY-NC-SA 3.0. Sources : [Rate Limiting](https://musicbrainz.org/doc/MusicBrainz_API/Rate_Limiting), [Data License](https://musicbrainz.org/doc/About/Data_License). | Limiteur à 1 req/s avec une petite file d'attente. User-Agent lu en configuration et validé au démarrage. Seules les données cœur (CC0) sont utilisées. |
 
 ## Tests et couverture
@@ -363,7 +369,7 @@ test métier ne casse quand un fournisseur change.
   Les réponses rejouées ont été capturées sur les vraies API, et le service a été essayé à la main
   contre elles (bascule à chaud vers MusicBrainz comprise).
 - Une recherche vide est une réponse : elle ne déclenche pas le failover vers le fournisseur
-  suivant, seulement le tirage d'un autre mot-clé.
+  suivant, seulement le passage au niveau de préférence suivant (météo, puis secours).
 - Pas de cache du profil utilisateur : si le service utilisateur tombe, on ne sait ni qui réveiller
   ni où ; la réponse est un 503, que l'ordonnanceur peut retenter.
 - Livraison « au moins une fois » : un canal qui dépasse son délai peut quand même livrer plus

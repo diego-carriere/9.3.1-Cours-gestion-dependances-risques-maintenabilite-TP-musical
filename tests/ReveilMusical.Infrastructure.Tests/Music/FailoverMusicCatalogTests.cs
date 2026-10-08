@@ -13,7 +13,7 @@ public sealed class FailoverMusicCatalogTests
 {
     private static readonly Track FromITunes = new("Soleil", "GIMS");
     private static readonly Track FromMusicBrainz = new("Soleil Soleil", "Ilya");
-    private static readonly Keyword Soleil = Keyword.Create("soleil").Value;
+    private static readonly TrackRequest Soleil = TrackRequest.Create("soleil").Value;
 
     private readonly FakeMusicCatalog _itunes = new FakeMusicCatalog().Returns("soleil", FromITunes);
     private readonly FakeMusicCatalog _musicBrainz = new FakeMusicCatalog().Returns("soleil", FromMusicBrainz);
@@ -40,7 +40,7 @@ public sealed class FailoverMusicCatalogTests
     [Fact]
     public async Task An_empty_answer_is_an_answer_not_a_failure()
     {
-        var result = await CreateSut("itunes", "musicbrainz").SearchAsync(Keyword.Create("rien").Value, TestContext.Current.CancellationToken);
+        var result = await CreateSut("itunes", "musicbrainz").SearchAsync(TrackRequest.Create("rien").Value, TestContext.Current.CancellationToken);
 
         Assert.Empty(result.Value);
         Assert.Empty(_musicBrainz.Searches);

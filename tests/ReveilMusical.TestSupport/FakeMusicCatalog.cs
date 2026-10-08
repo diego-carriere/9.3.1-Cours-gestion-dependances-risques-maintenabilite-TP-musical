@@ -5,7 +5,7 @@ using ReveilMusical.Domain.Results;
 namespace ReveilMusical.TestSupport;
 
 /// <summary>
-/// Catalogue scripté par mot-clé. Un mot-clé non scripté renvoie une liste vide (rien ne
+/// Catalogue scripté par morceau demandé. Un morceau non scripté renvoie une liste vide (rien ne
 /// correspond), ce qui n'est pas un échec : voir <see cref="IMusicCatalog"/>.
 /// </summary>
 public sealed class FakeMusicCatalog : IMusicCatalog
@@ -13,17 +13,20 @@ public sealed class FakeMusicCatalog : IMusicCatalog
     private readonly Dictionary<string, Result<IReadOnlyList<Track>>> _scripted = new(StringComparer.Ordinal);
     private DomainError? _outage;
 
-    public List<Keyword> Searches { get; } = [];
+    public List<TrackRequest> Searches { get; } = [];
 
-    public FakeMusicCatalog Returns(string keyword, params Track[] tracks)
+    /// <summary>Le morceau demandé par son seul titre, sans artiste.</summary>
+    public FakeMusicCatalog Returns(string title, params Track[] tracks) => Returns(Request(title), tracks);
+
+    public FakeMusicCatalog Returns(TrackRequest request, params Track[] tracks)
     {
-        _scripted[Keyword.Create(keyword).Value.Normalized] = Result.Success<IReadOnlyList<Track>>(tracks);
+        _scripted[request.Normalized] = Result.Success<IReadOnlyList<Track>>(tracks);
         return this;
     }
 
-    public FakeMusicCatalog FailsFor(string keyword, ErrorKind kind)
+    public FakeMusicCatalog FailsFor(string title, ErrorKind kind)
     {
-        _scripted[Keyword.Create(keyword).Value.Normalized] = Result.Failure<IReadOnlyList<Track>>(kind, $"Échec scripté pour '{keyword}'.");
+        _scripted[Request(title).Normalized] = Result.Failure<IReadOnlyList<Track>>(kind, $"Échec scripté pour '{title}'.");
         return this;
     }
 
@@ -34,17 +37,19 @@ public sealed class FakeMusicCatalog : IMusicCatalog
         return this;
     }
 
-    public Task<Result<IReadOnlyList<Track>>> SearchAsync(Keyword keyword, CancellationToken cancellationToken)
+    public Task<Result<IReadOnlyList<Track>>> SearchAsync(TrackRequest request, CancellationToken cancellationToken)
     {
-        Searches.Add(keyword);
+        Searches.Add(request);
 
         if (_outage is not null)
         {
             return Task.FromResult(Result.Failure<IReadOnlyList<Track>>(_outage));
         }
 
-        return Task.FromResult(_scripted.TryGetValue(keyword.Normalized, out var result)
+        return Task.FromResult(_scripted.TryGetValue(request.Normalized, out var result)
             ? result
             : Result.Success<IReadOnlyList<Track>>([]));
     }
+
+    private static TrackRequest Request(string title) => TrackRequest.Create(title).Value;
 }

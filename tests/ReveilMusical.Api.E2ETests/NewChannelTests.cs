@@ -21,8 +21,8 @@ public sealed class NewChannelTests
                 ["UserService:Users:3:DisplayName"] = "Dana",
                 ["UserService:Users:3:PreferredChannel"] = "whatsapp",
                 ["UserService:Users:3:Contacts:whatsapp"] = "+33700000000",
-                ["UserService:Users:3:KeywordsByWeather:SOLEIL:0"] = "soleil",
-                ["UserService:Users:3:FallbackKeywords:0"] = "wake up",
+                ["UserService:Users:3:TracksByWeather:SOLEIL:Title"] = "Soleil",
+                ["UserService:Users:3:FallbackTrack:Title"] = "Wake Me Up",
             },
             services => services.AddNotificationChannel<FakeNotificationChannel>("whatsapp"));
         factory.Upstream.FixtureFor(FakeUpstream.ITunesHost, "itunes-search-soleil.json");

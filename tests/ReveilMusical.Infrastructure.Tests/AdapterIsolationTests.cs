@@ -26,6 +26,7 @@ public sealed class AdapterIsolationTests
         "ProviderResilienceOptions",
         "UserDirectoryOptions",
         "UserRecord",
+        "TrackRecord",
     };
 
     [Fact]

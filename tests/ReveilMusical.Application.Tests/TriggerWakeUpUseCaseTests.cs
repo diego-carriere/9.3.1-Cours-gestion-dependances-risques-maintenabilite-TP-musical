@@ -114,7 +114,7 @@ public sealed class TriggerWakeUpUseCaseTests
 
         return new TriggerWakeUpUseCase(
             _profiles,
-            new TrackSelector(_catalog, _playlist, new FakeRandom(), options, NullLogger<TrackSelector>.Instance),
+            new TrackSelector(_catalog, _playlist, NullLogger<TrackSelector>.Instance),
             new NotificationDispatcher(
                 new FakeNotificationChannelResolver().With("sms", _sms).With("email", _email),
                 _alerter,

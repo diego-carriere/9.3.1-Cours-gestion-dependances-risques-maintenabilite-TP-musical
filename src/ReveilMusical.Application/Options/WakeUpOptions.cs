@@ -6,12 +6,6 @@ public sealed class WakeUpOptions
     public const string SectionName = "Wakeup";
 
     /// <summary>
-    /// Nombre maximal de recherches musicales par réveil, tous jeux de mots-clés confondus :
-    /// protège les quotas des fournisseurs (iTunes ~20 req/min, MusicBrainz 1 req/s).
-    /// </summary>
-    public int MaxSearchAttempts { get; set; } = 3;
-
-    /// <summary>
     /// Ordre de la cascade après le canal préféré. Un tableau, pas une liste : le binder de
     /// configuration remplace un tableau, alors qu'il complète une liste déjà remplie.
     /// </summary>

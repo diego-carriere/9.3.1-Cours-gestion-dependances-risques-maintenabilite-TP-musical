@@ -10,11 +10,6 @@ public sealed class WakeUpOptionsValidator : IValidateOptions<WakeUpOptions>
     {
         var failures = new List<string>();
 
-        if (options.MaxSearchAttempts is < 1 or > 10)
-        {
-            failures.Add($"{WakeUpOptions.SectionName}:MaxSearchAttempts doit être entre 1 et 10 (reçu {options.MaxSearchAttempts}).");
-        }
-
         failures.AddRange(
             from channel in options.FallbackChannels
             where ChannelId.Create(channel).IsFailure

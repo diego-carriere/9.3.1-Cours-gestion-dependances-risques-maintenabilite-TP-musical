@@ -26,7 +26,7 @@ internal sealed partial class FailoverMusicCatalog : IMusicCatalog
         _logger = logger;
     }
 
-    public async Task<Result<IReadOnlyList<Track>>> SearchAsync(Keyword keyword, CancellationToken cancellationToken)
+    public async Task<Result<IReadOnlyList<Track>>> SearchAsync(TrackRequest request, CancellationToken cancellationToken)
     {
         var failures = new List<string>();
 
@@ -39,7 +39,7 @@ internal sealed partial class FailoverMusicCatalog : IMusicCatalog
                 continue;
             }
 
-            var result = await provider.SearchAsync(keyword, cancellationToken).ConfigureAwait(false);
+            var result = await provider.SearchAsync(request, cancellationToken).ConfigureAwait(false);
             if (result.IsSuccess)
             {
                 return result;

@@ -29,10 +29,12 @@ internal sealed partial class ITunesCatalog : IMusicCatalog
         _logger = logger;
     }
 
-    public async Task<Result<IReadOnlyList<Track>>> SearchAsync(Keyword keyword, CancellationToken cancellationToken)
+    public async Task<Result<IReadOnlyList<Track>>> SearchAsync(TrackRequest request, CancellationToken cancellationToken)
     {
+        // Un seul champ de recherche libre chez iTunes : le titre, suivi de l'artiste s'il est connu.
+        var term = request.Artist is null ? request.Title : $"{request.Title} {request.Artist}";
         var uri = FormattableString.Invariant(
-            $"search?term={Uri.EscapeDataString(keyword.Value)}&media=music&entity=song&limit={_options.Limit}&country={_options.Country}");
+            $"search?term={Uri.EscapeDataString(term)}&media=music&entity=song&limit={_options.Limit}&country={_options.Country}");
 
         try
         {

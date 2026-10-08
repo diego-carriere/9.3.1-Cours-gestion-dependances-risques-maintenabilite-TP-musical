@@ -3,62 +3,68 @@ using ReveilMusical.Domain.Results;
 
 namespace ReveilMusical.Domain.Tests;
 
-public sealed class KeywordTests
+public sealed class TrackRequestTests
 {
     [Fact]
     public void Create_trims_and_collapses_inner_whitespace()
     {
-        var keyword = Keyword.Create("  beau    temps ").Value;
+        var request = TrackRequest.Create("  Here   Comes the Sun ", " The   Beatles ").Value;
 
-        Assert.Equal("beau temps", keyword.Value);
+        Assert.Equal("Here Comes the Sun", request.Title);
+        Assert.Equal("The Beatles", request.Artist);
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Create_rejects_a_blank_keyword(string? raw)
+    public void Create_rejects_a_blank_title(string? title)
     {
-        var result = Keyword.Create(raw);
+        var result = TrackRequest.Create(title, "The Beatles");
 
         Assert.Equal(ErrorKind.InvalidRequest, result.Error.Kind);
     }
 
-    [Fact]
-    public void Create_rejects_a_keyword_longer_than_the_limit()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("  ")]
+    public void The_artist_is_optional(string? artist)
     {
-        var result = Keyword.Create(new string('a', Keyword.MaxLength + 1));
+        var request = TrackRequest.Create("Je veux", artist).Value;
 
-        Assert.True(result.IsFailure);
+        Assert.Null(request.Artist);
+        Assert.Equal("Je veux", request.ToString());
     }
 
     [Fact]
-    public void Normalized_form_ignores_case_so_two_spellings_share_a_cache_entry()
+    public void Create_rejects_a_title_or_an_artist_that_is_too_long()
     {
-        Assert.Equal(Keyword.Create("Beau Temps").Value.Normalized, Keyword.Create("beau temps").Value.Normalized);
-    }
-}
+        var tooLong = new string('a', TrackRequest.MaxLength + 1);
 
-public sealed class KeywordSetTests
-{
-    [Fact]
-    public void Create_keeps_the_order_and_drops_case_insensitive_duplicates()
-    {
-        var set = KeywordSet.Create(["soleil", "Sunshine", "SOLEIL"]).Value;
-
-        Assert.Equal(["soleil", "Sunshine"], set.Keywords.Select(k => k.Value));
+        Assert.True(TrackRequest.Create(tooLong).IsFailure);
+        Assert.True(TrackRequest.Create("Je veux", tooLong).IsFailure);
     }
 
     [Fact]
-    public void Create_rejects_an_empty_list()
+    public void Normalized_ignores_case_so_two_spellings_share_a_cache_entry()
     {
-        Assert.Equal(ErrorKind.InvalidRequest, KeywordSet.Create([]).Error.Kind);
+        Assert.Equal(
+            TrackRequest.Create("Here Comes The Sun", "the beatles").Value.Normalized,
+            TrackRequest.Create("here comes the sun", "The Beatles").Value.Normalized);
     }
 
     [Fact]
-    public void Create_rejects_a_list_holding_an_invalid_keyword()
+    public void Normalized_keeps_title_and_artist_apart()
     {
-        Assert.True(KeywordSet.Create(["soleil", " "]).IsFailure);
+        Assert.NotEqual(
+            TrackRequest.Create("Wake Me Up Avicii").Value.Normalized,
+            TrackRequest.Create("Wake Me Up", "Avicii").Value.Normalized);
+    }
+
+    [Fact]
+    public void ToString_shows_the_title_then_the_artist()
+    {
+        Assert.Equal("Wake Me Up — Avicii", TrackRequest.Create("Wake Me Up", "Avicii").Value.ToString());
     }
 }
 

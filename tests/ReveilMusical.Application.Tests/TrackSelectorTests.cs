@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using ReveilMusical.Application.Music;
-using ReveilMusical.Application.Options;
 using ReveilMusical.Domain.Model;
 using ReveilMusical.TestSupport;
 
@@ -16,25 +15,25 @@ public sealed class TrackSelectorTests
     private readonly FakeFallbackPlaylist _playlist = new();
 
     [Fact]
-    public async Task Picks_a_random_track_among_the_results_of_a_random_keyword()
+    public async Task The_users_track_for_the_weather_is_searched_and_the_first_result_is_kept()
     {
-        _catalog.Returns("rain", A, B, C);
-        var random = new FakeRandom(1, 2); // mot-clé n°1 ("rain"), puis morceau n°2 (C)
-        var profile = new ProfileBuilder().ForWeather(WeatherCondition.Rainy, "pluie", "rain").Build();
+        var rain = TrackRequest.Create("Set Fire to the Rain", "Adele").Value;
+        _catalog.Returns(rain, A, B, C);
+        var profile = new ProfileBuilder().ForWeather(WeatherCondition.Rainy, "Set Fire to the Rain", "Adele").Build();
 
-        var choice = await CreateSut(random).SelectAsync(profile, DayOfWeek.Tuesday, WeatherCondition.Rainy, CancellationToken.None);
+        var choice = await CreateSut().SelectAsync(profile, DayOfWeek.Tuesday, WeatherCondition.Rainy, CancellationToken.None);
 
-        Assert.Equal(new TrackChoice(C, TrackSource.Catalog, PreferenceLevel.Weather, Keyword.Create("rain").Value), choice);
-        Assert.Equal([2, 3], random.Requests);
+        Assert.Equal(new TrackChoice(A, TrackSource.Catalog, PreferenceLevel.Weather, rain), choice);
+        Assert.Equal([rain], _catalog.Searches);
     }
 
     [Fact]
-    public async Task The_day_override_provides_the_keywords()
+    public async Task The_day_override_provides_the_track()
     {
-        _catalog.Returns("monday", A);
+        _catalog.Returns("Manic Monday", A).Returns("Set Fire to the Rain", B);
         var profile = new ProfileBuilder()
-            .ForWeather(WeatherCondition.Rainy, "pluie")
-            .ForDay(DayOfWeek.Monday, WeatherCondition.Rainy, "monday")
+            .ForWeather(WeatherCondition.Rainy, "Set Fire to the Rain")
+            .ForDay(DayOfWeek.Monday, WeatherCondition.Rainy, "Manic Monday")
             .Build();
 
         var choice = await CreateSut().SelectAsync(profile, DayOfWeek.Monday, WeatherCondition.Rainy, CancellationToken.None);
@@ -44,44 +43,54 @@ public sealed class TrackSelectorTests
     }
 
     [Fact]
-    public async Task An_empty_search_draws_another_keyword_of_the_same_set_without_repeating_it()
+    public async Task A_track_the_provider_does_not_find_moves_on_to_the_next_preference_level()
     {
-        _catalog.Returns("rain", B);
-        var profile = new ProfileBuilder().ForWeather(WeatherCondition.Rainy, "pluie", "rain").Build();
+        _catalog.Returns("Set Fire to the Rain", B);
+        var profile = new ProfileBuilder()
+            .ForWeather(WeatherCondition.Rainy, "Set Fire to the Rain")
+            .ForDay(DayOfWeek.Monday, WeatherCondition.Rainy, "Introuvable")
+            .Build();
 
-        var choice = await CreateSut(new FakeRandom(0, 0, 0)).SelectAsync(profile, DayOfWeek.Tuesday, WeatherCondition.Rainy, CancellationToken.None);
+        var choice = await CreateSut().SelectAsync(profile, DayOfWeek.Monday, WeatherCondition.Rainy, CancellationToken.None);
 
         Assert.Equal(B, choice.Track);
-        Assert.Equal(["pluie", "rain"], _catalog.Searches.Select(k => k.Value));
+        Assert.Equal(PreferenceLevel.Weather, choice.Level);
+        Assert.Equal(["Introuvable", "Set Fire to the Rain"], _catalog.Searches.Select(r => r.Title));
     }
 
     [Fact]
-    public async Task An_exhausted_set_moves_on_to_the_fallback_keywords()
+    public async Task A_weather_track_that_is_not_found_moves_on_to_the_fallback_track()
     {
-        _catalog.Returns("wake up", C);
-        var profile = new ProfileBuilder().ForWeather(WeatherCondition.Rainy, "pluie").WithFallback("wake up").Build();
+        _catalog.Returns("Wake Me Up", C);
+        var profile = new ProfileBuilder().ForWeather(WeatherCondition.Rainy, "Introuvable").WithFallback("Wake Me Up").Build();
 
         var choice = await CreateSut().SelectAsync(profile, DayOfWeek.Tuesday, WeatherCondition.Rainy, CancellationToken.None);
 
-        Assert.Equal(new TrackChoice(C, TrackSource.Catalog, PreferenceLevel.Fallback, Keyword.Create("wake up").Value), choice);
+        Assert.Equal(
+            new TrackChoice(C, TrackSource.Catalog, PreferenceLevel.Fallback, TrackRequest.Create("Wake Me Up").Value),
+            choice);
     }
 
     [Fact]
-    public async Task An_uncovered_weather_searches_the_fallback_keywords_only_once()
+    public async Task An_uncovered_weather_searches_the_fallback_track_only_once()
     {
-        var profile = new ProfileBuilder().WithFallback("wake up").Build();
+        var profile = new ProfileBuilder().WithFallback("Wake Me Up").Build();
 
         var choice = await CreateSut().SelectAsync(profile, DayOfWeek.Tuesday, WeatherCondition.Snowy, CancellationToken.None);
 
         Assert.Single(_catalog.Searches);
         Assert.Equal(TrackSource.LocalPlaylist, choice.Source);
+        Assert.Equal(PreferenceLevel.Fallback, choice.Level);
     }
 
     [Fact]
     public async Task A_provider_outage_goes_straight_to_the_local_playlist()
     {
         _catalog.IsDown();
-        var profile = new ProfileBuilder().ForWeather(WeatherCondition.Rainy, "pluie", "rain").WithFallback("wake up").Build();
+        var profile = new ProfileBuilder()
+            .ForWeather(WeatherCondition.Rainy, "Set Fire to the Rain")
+            .WithFallback("Wake Me Up")
+            .Build();
 
         var choice = await CreateSut().SelectAsync(profile, DayOfWeek.Tuesday, WeatherCondition.Rainy, CancellationToken.None);
 
@@ -91,31 +100,19 @@ public sealed class TrackSelectorTests
     }
 
     [Fact]
-    public async Task The_number_of_searches_is_bounded_to_protect_provider_quotas()
+    public async Task Nothing_found_anywhere_still_wakes_the_user_with_the_local_playlist_after_at_most_three_searches()
     {
-        var profile = new ProfileBuilder().ForWeather(WeatherCondition.Rainy, "a", "b", "c").WithFallback("d").Build();
-
-        var choice = await CreateSut(maxSearchAttempts: 2).SelectAsync(profile, DayOfWeek.Tuesday, WeatherCondition.Rainy, CancellationToken.None);
-
-        Assert.Equal(2, _catalog.Searches.Count);
-        Assert.Equal(TrackSource.LocalPlaylist, choice.Source);
-    }
-
-    [Fact]
-    public async Task Nothing_found_anywhere_still_wakes_the_user_with_the_local_playlist()
-    {
-        var profile = new ProfileBuilder().ForWeather(WeatherCondition.Sunny, "soleil").WithFallback("wake up").Build();
+        var profile = new ProfileBuilder()
+            .ForWeather(WeatherCondition.Sunny, "Introuvable 1")
+            .ForDay(DayOfWeek.Sunday, WeatherCondition.Sunny, "Introuvable 2")
+            .WithFallback("Introuvable 3")
+            .Build();
 
         var choice = await CreateSut().SelectAsync(profile, DayOfWeek.Sunday, WeatherCondition.Sunny, CancellationToken.None);
 
-        Assert.Equal(["soleil", "wake up"], _catalog.Searches.Select(k => k.Value));
-        Assert.Equal(FakeFallbackPlaylist.DefaultTrack, choice.Track);
+        Assert.Equal(["Introuvable 2", "Introuvable 1", "Introuvable 3"], _catalog.Searches.Select(r => r.Title));
+        Assert.Equal(new TrackChoice(FakeFallbackPlaylist.DefaultTrack, TrackSource.LocalPlaylist, PreferenceLevel.DayAndWeather, null), choice);
     }
 
-    private TrackSelector CreateSut(FakeRandom? random = null, int maxSearchAttempts = 5) => new(
-        _catalog,
-        _playlist,
-        random ?? new FakeRandom(),
-        Microsoft.Extensions.Options.Options.Create(new WakeUpOptions { MaxSearchAttempts = maxSearchAttempts }),
-        NullLogger<TrackSelector>.Instance);
+    private TrackSelector CreateSut() => new(_catalog, _playlist, NullLogger<TrackSelector>.Instance);
 }

@@ -6,26 +6,27 @@ namespace ReveilMusical.Api.E2ETests;
 public sealed class WakeUpEndpointTests
 {
     [Fact]
-    public async Task Nominal_wake_up_finds_a_track_on_itunes_and_pushes_it()
+    public async Task Nominal_wake_up_finds_the_users_track_on_itunes_and_pushes_it()
     {
         await using var factory = new ReveilApiFactory();
-        factory.Upstream.FixtureFor(FakeUpstream.ITunesHost, "itunes-search-soleil.json", "text/javascript");
+        factory.Upstream.FixtureFor(FakeUpstream.ITunesHost, "itunes-search-here-comes-the-sun.json", "text/javascript");
 
         var response = await factory.CreateClient().WakeUpAsync("42", "MARDI", "SOLEIL");
         var json = await response.JsonAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("Soleil", json.Str("track.title"));
-        Assert.Equal("GIMS", json.Str("track.artist"));
+        Assert.Equal("Here Comes the Sun", json.Str("track.title"));
+        Assert.Equal("The Beatles", json.Str("track.artist"));
         Assert.Equal("catalog", json.Str("track.source"));
         Assert.Equal("weather", json.Str("track.preference"));
-        Assert.Equal("soleil", json.Str("track.keyword"));
+        Assert.Equal("Here Comes the Sun — The Beatles", json.Str("track.requested"));
+        Assert.Contains("term=Here%20Comes%20the%20Sun%20The%20Beatles", factory.Upstream.Requests.Single().RequestUri!.Query, StringComparison.Ordinal);
         Assert.Equal("push", json.Str("notification.deliveredOn"));
         Assert.Equal("delivered", json.Str("notification.attempts.0.status"));
         Assert.Equal("true", json.Str("delivered"));
         Assert.Equal("false", json.Str("degraded"));
         Assert.False(json.GetRawText().Contains("trackViewUrl", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains("Ce mardi s'annonce ensoleillé : réveil en musique avec « Soleil » de GIMS.", factory.Outbox("push.log"), StringComparison.Ordinal);
+        Assert.Contains("Ce mardi s'annonce ensoleillé : réveil en musique avec « Here Comes the Sun » de The Beatles.", factory.Outbox("push.log"), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -37,8 +38,8 @@ public sealed class WakeUpEndpointTests
         var json = await (await factory.CreateClient().WakeUpAsync("42", "lundi", "pluie")).JsonAsync();
 
         Assert.Equal("day-and-weather", json.Str("track.preference"));
-        Assert.Equal("monday", json.Str("track.keyword"));
-        Assert.Contains("term=monday", factory.Upstream.Requests.Single().RequestUri!.Query, StringComparison.Ordinal);
+        Assert.Equal("Manic Monday — The Bangles", json.Str("track.requested"));
+        Assert.Contains("term=Manic%20Monday%20The%20Bangles", factory.Upstream.Requests.Single().RequestUri!.Query, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -47,11 +48,12 @@ public sealed class WakeUpEndpointTests
         await using var factory = new ReveilApiFactory();
         factory.Upstream
             .FailFor(FakeUpstream.ITunesHost, times: 2)
-            .FixtureFor(FakeUpstream.MusicBrainzHost, "musicbrainz-recording-soleil.json");
+            .FixtureFor(FakeUpstream.MusicBrainzHost, "musicbrainz-recording-here-comes-the-sun.json");
 
         var json = await (await factory.CreateClient().WakeUpAsync("42", "MARDI", "SOLEIL")).JsonAsync();
 
-        Assert.Equal("soleil soleil soleil", json.Str("track.title"));
+        Assert.Equal("Here Comes the Sun", json.Str("track.title"));
+        Assert.Equal("The Beatles", json.Str("track.artist"));
         Assert.Equal("catalog", json.Str("track.source"));
         Assert.Equal("false", json.Str("degraded"));
         Assert.StartsWith("ReveilMusical-E2E/1.0", factory.Upstream.Requests.Last().Headers.UserAgent.ToString(), StringComparison.Ordinal);
@@ -69,7 +71,7 @@ public sealed class WakeUpEndpointTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("local-playlist", json.Str("track.source"));
         Assert.Equal("Here Comes the Sun", json.Str("track.title"));
-        Assert.Equal("null", json.Str("track.keyword"));
+        Assert.Equal("null", json.Str("track.requested"));
         Assert.Equal("true", json.Str("degraded"));
         Assert.Equal("true", json.Str("delivered"));
     }

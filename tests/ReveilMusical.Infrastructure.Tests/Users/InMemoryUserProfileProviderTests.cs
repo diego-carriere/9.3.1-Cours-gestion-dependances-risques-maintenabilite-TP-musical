@@ -14,9 +14,13 @@ public sealed class InMemoryUserProfileProviderTests : UserProfileProviderContra
         DisplayName = "Alice",
         PreferredChannel = "push",
         Contacts = new() { ["push"] = "device-token-1234", ["SMS"] = "+33612345678" },
-        KeywordsByWeather = new() { ["SOLEIL"] = ["soleil", "beau temps"], ["pluie"] = ["rain"] },
-        KeywordsByDayAndWeather = new() { ["LUNDI+PLUIE"] = ["monday", "blues"] },
-        FallbackKeywords = ["wake up"],
+        TracksByWeather = new()
+        {
+            ["SOLEIL"] = new() { Title = "Here Comes the Sun", Artist = "The Beatles" },
+            ["pluie"] = new() { Title = "Set Fire to the Rain" },
+        },
+        TracksByDayAndWeather = new() { ["LUNDI+PLUIE"] = new() { Title = "Manic Monday", Artist = "The Bangles" } },
+        FallbackTrack = new() { Title = "Wake Me Up", Artist = "Avicii" },
     };
 
     [Fact]
@@ -27,10 +31,10 @@ public sealed class InMemoryUserProfileProviderTests : UserProfileProviderContra
         Assert.Equal("Alice", profile.DisplayName);
         Assert.Equal("push", profile.PreferredChannel.Value);
         Assert.Equal("+33612345678", profile.ContactFor(ChannelId.Create("sms").Value)?.Value);
-        Assert.Equal(["monday", "blues"], Keywords(profile, DayOfWeek.Monday, WeatherCondition.Rainy));
-        Assert.Equal(["rain"], Keywords(profile, DayOfWeek.Tuesday, WeatherCondition.Rainy));
-        Assert.Equal(["soleil", "beau temps"], Keywords(profile, DayOfWeek.Monday, WeatherCondition.Sunny));
-        Assert.Equal(["wake up"], Keywords(profile, DayOfWeek.Monday, WeatherCondition.Snowy));
+        Assert.Equal("Manic Monday — The Bangles", FirstChoice(profile, DayOfWeek.Monday, WeatherCondition.Rainy));
+        Assert.Equal("Set Fire to the Rain", FirstChoice(profile, DayOfWeek.Tuesday, WeatherCondition.Rainy));
+        Assert.Equal("Here Comes the Sun — The Beatles", FirstChoice(profile, DayOfWeek.Monday, WeatherCondition.Sunny));
+        Assert.Equal("Wake Me Up — Avicii", FirstChoice(profile, DayOfWeek.Monday, WeatherCondition.Snowy));
     }
 
     [Fact]
@@ -49,6 +53,6 @@ public sealed class InMemoryUserProfileProviderTests : UserProfileProviderContra
     private static InMemoryUserProfileProvider Create(params UserRecord[] users) =>
         new(Microsoft.Extensions.Options.Options.Create(new UserDirectoryOptions { Users = [.. users] }));
 
-    private static IEnumerable<string> Keywords(UserProfile profile, DayOfWeek day, WeatherCondition weather) =>
-        profile.KeywordsFor(day, weather).Keywords.Keywords.Select(k => k.Value);
+    private static string FirstChoice(UserProfile profile, DayOfWeek day, WeatherCondition weather) =>
+        profile.CandidatesFor(day, weather)[0].Request.ToString();
 }

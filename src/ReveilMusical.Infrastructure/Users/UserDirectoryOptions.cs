@@ -25,14 +25,22 @@ public sealed class UserRecord
     /// <summary>Canal → coordonnée (« sms » → « +33612345678 »).</summary>
     public Dictionary<string, string> Contacts { get; set; } = [];
 
-    /// <summary>Code météo (« SOLEIL ») → mots-clés.</summary>
-    public Dictionary<string, string[]> KeywordsByWeather { get; set; } = [];
+    /// <summary>Code météo (« SOLEIL ») → morceau choisi par l'utilisateur.</summary>
+    public Dictionary<string, TrackRecord> TracksByWeather { get; set; } = [];
 
     /// <summary>
-    /// « LUNDI+PLUIE » → mots-clés. Le « + » plutôt que « : », séparateur de sections de la
+    /// « LUNDI+PLUIE » → morceau. Le « + » plutôt que « : », séparateur de sections de la
     /// configuration .NET, qui casserait la clé en deux.
     /// </summary>
-    public Dictionary<string, string[]> KeywordsByDayAndWeather { get; set; } = [];
+    public Dictionary<string, TrackRecord> TracksByDayAndWeather { get; set; } = [];
 
-    public string[] FallbackKeywords { get; set; } = [];
+    /// <summary>Le morceau de secours, pour les cas que l'utilisateur n'a pas couverts.</summary>
+    public TrackRecord? FallbackTrack { get; set; }
+}
+
+public sealed class TrackRecord
+{
+    public string Title { get; set; } = string.Empty;
+
+    public string? Artist { get; set; }
 }

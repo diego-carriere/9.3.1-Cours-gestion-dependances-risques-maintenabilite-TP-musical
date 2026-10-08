@@ -1,0 +1,58 @@
+{
+  "created": "2026-10-08T12:17:21.610Z",
+  "count": 77,
+  "offset": 0,
+  "recordings": [
+    {
+      "id": "02049656-7c4a-47e8-b37e-8ff83b9f9a86",
+      "score": 100,
+      "title": "Here Comes the Sun",
+      "length": 187000,
+      "artist-credit": [
+        {
+          "name": "The Beatles",
+          "joinphrase": null,
+          "artist": {
+            "id": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+            "name": "The Beatles",
+            "sort-name": "Beatles, The"
+          }
+        }
+      ]
+    },
+    {
+      "id": "32f38274-1bf5-4597-a786-e00567fe9401",
+      "score": 100,
+      "title": "Here Comes the Sun",
+      "length": 69173,
+      "artist-credit": [
+        {
+          "name": "The Beatles",
+          "joinphrase": null,
+          "artist": {
+            "id": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+            "name": "The Beatles",
+            "sort-name": "Beatles, The"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cc0b175d-7913-40ef-b7f3-85fdb559d957",
+      "score": 100,
+      "title": "Here Comes the Sun",
+      "length": null,
+      "artist-credit": [
+        {
+          "name": "The Beatles",
+          "joinphrase": null,
+          "artist": {
+            "id": "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",
+            "name": "The Beatles",
+            "sort-name": "Beatles, The"
+          }
+        }
+      ]
+    }
+  ]
+}

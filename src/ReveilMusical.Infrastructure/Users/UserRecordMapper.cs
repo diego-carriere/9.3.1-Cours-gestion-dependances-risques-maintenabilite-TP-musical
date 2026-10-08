@@ -33,43 +33,45 @@ internal static class UserRecordMapper
             contacts[channelId.Value] = contact.Value;
         }
 
-        var byWeather = new Dictionary<WeatherCondition, KeywordSet>();
-        foreach (var (code, keywords) in record.KeywordsByWeather)
+        var byWeather = new Dictionary<WeatherCondition, TrackRequest>();
+        foreach (var (code, track) in record.TracksByWeather)
         {
-            var set = KeywordSet.Create(keywords);
-            if (!FrenchCodes.TryParseWeather(code, out var weather) || set.IsFailure)
+            var request = ToRequest(track);
+            if (!FrenchCodes.TryParseWeather(code, out var weather) || request.IsFailure)
             {
-                return Fail(record, $"préférence météo invalide '{code}'.");
+                return Fail(record, $"morceau par météo invalide '{code}'.");
             }
 
-            byWeather[weather] = set.Value;
+            byWeather[weather] = request.Value;
         }
 
-        var byDayAndWeather = new Dictionary<DayAndWeather, KeywordSet>();
-        foreach (var (code, keywords) in record.KeywordsByDayAndWeather)
+        var byDayAndWeather = new Dictionary<DayAndWeather, TrackRequest>();
+        foreach (var (code, track) in record.TracksByDayAndWeather)
         {
             var parts = code.Split('+');
-            var set = KeywordSet.Create(keywords);
+            var request = ToRequest(track);
             if (parts.Length != 2
                 || !FrenchCodes.TryParseDay(parts[0], out var day)
                 || !FrenchCodes.TryParseWeather(parts[1], out var weather)
-                || set.IsFailure)
+                || request.IsFailure)
             {
-                return Fail(record, $"surcharge jour+météo invalide '{code}' (attendu « LUNDI+PLUIE »).");
+                return Fail(record, $"surcharge jour+météo invalide '{code}' (attendu « LUNDI+PLUIE » et un titre).");
             }
 
-            byDayAndWeather[new DayAndWeather(day, weather)] = set.Value;
+            byDayAndWeather[new DayAndWeather(day, weather)] = request.Value;
         }
 
-        var fallback = KeywordSet.Create(record.FallbackKeywords);
+        var fallback = ToRequest(record.FallbackTrack);
         if (fallback.IsFailure)
         {
-            return Fail(record, "mots-clés de secours absents.");
+            return Fail(record, "morceau de secours absent ou sans titre.");
         }
 
         return Result.Success(new UserProfile(
             id.Value, record.DisplayName, preferred.Value, contacts, byWeather, byDayAndWeather, fallback.Value));
     }
+
+    private static Result<TrackRequest> ToRequest(TrackRecord? track) => TrackRequest.Create(track?.Title, track?.Artist);
 
     private static Result<UserProfile> Fail(UserRecord record, string reason) =>
         Result.Failure<UserProfile>(ErrorKind.InvalidRequest, $"Utilisateur '{record.Id}' : {reason}");

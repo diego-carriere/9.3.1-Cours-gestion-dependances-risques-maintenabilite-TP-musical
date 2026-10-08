@@ -30,12 +30,12 @@ internal sealed partial class MusicBrainzCatalog : IMusicCatalog
         _logger = logger;
     }
 
-    public async Task<Result<IReadOnlyList<Track>>> SearchAsync(Keyword keyword, CancellationToken cancellationToken)
+    public async Task<Result<IReadOnlyList<Track>>> SearchAsync(TrackRequest request, CancellationToken cancellationToken)
     {
         try
         {
-            using var request = BuildRequest(keyword);
-            using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            using var httpRequest = BuildRequest(request);
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -72,10 +72,10 @@ internal sealed partial class MusicBrainzCatalog : IMusicCatalog
         }
     }
 
-    private HttpRequestMessage BuildRequest(Keyword keyword)
+    private HttpRequestMessage BuildRequest(TrackRequest track)
     {
         var uri = FormattableString.Invariant(
-            $"ws/2/recording?query={Uri.EscapeDataString(keyword.Value)}&fmt=json&limit={_options.Limit}");
+            $"ws/2/recording?query={Uri.EscapeDataString(LuceneQuery(track))}&fmt=json&limit={_options.Limit}");
         var request = new HttpRequestMessage(HttpMethod.Get, uri);
 
         // Sans validation : la forme « Application/Version ( contact ) » est validée au démarrage,
@@ -83,6 +83,21 @@ internal sealed partial class MusicBrainzCatalog : IMusicCatalog
         request.Headers.TryAddWithoutValidation("User-Agent", _options.UserAgent);
         return request;
     }
+
+    /// <summary>
+    /// La recherche MusicBrainz est une requête Lucene : chaque valeur va dans une phrase entre
+    /// guillemets, sur son champ. Un « : », un « - » ou un « AND » dans un titre reste alors du texte,
+    /// au lieu de changer la requête ou de provoquer un 400 pris pour une panne.
+    /// </summary>
+    private static string LuceneQuery(TrackRequest track)
+    {
+        var query = $"recording:{Phrase(track.Title)}";
+        return track.Artist is null ? query : $"{query} AND artist:{Phrase(track.Artist)}";
+    }
+
+    // Dans une phrase Lucene, seuls la barre oblique inverse et le guillemet sont à échapper.
+    private static string Phrase(string value) =>
+        $"\"{value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal)}\"";
 
     private static string? ArtistOf(MusicBrainzRecordingDto recording)
     {

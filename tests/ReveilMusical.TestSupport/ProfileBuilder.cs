@@ -7,11 +7,11 @@ public sealed class ProfileBuilder
 {
     private readonly string _id;
     private readonly Dictionary<ChannelId, ContactAddress> _contacts = [];
-    private readonly Dictionary<WeatherCondition, KeywordSet> _byWeather = [];
-    private readonly Dictionary<DayAndWeather, KeywordSet> _byDayAndWeather = [];
+    private readonly Dictionary<WeatherCondition, TrackRequest> _byWeather = [];
+    private readonly Dictionary<DayAndWeather, TrackRequest> _byDayAndWeather = [];
     private string _displayName = "Alice";
     private string _preferredChannel = "sms";
-    private string[] _fallback = ["wake up"];
+    private TrackRequest _fallback = TrackRequest.Create("Wake Me Up").Value;
 
     public ProfileBuilder(string id = "42") => _id = id;
 
@@ -33,21 +33,21 @@ public sealed class ProfileBuilder
         return this;
     }
 
-    public ProfileBuilder ForWeather(WeatherCondition weather, params string[] keywords)
+    public ProfileBuilder ForWeather(WeatherCondition weather, string title, string? artist = null)
     {
-        _byWeather[weather] = KeywordSet.Create(keywords).Value;
+        _byWeather[weather] = TrackRequest.Create(title, artist).Value;
         return this;
     }
 
-    public ProfileBuilder ForDay(DayOfWeek day, WeatherCondition weather, params string[] keywords)
+    public ProfileBuilder ForDay(DayOfWeek day, WeatherCondition weather, string title, string? artist = null)
     {
-        _byDayAndWeather[new DayAndWeather(day, weather)] = KeywordSet.Create(keywords).Value;
+        _byDayAndWeather[new DayAndWeather(day, weather)] = TrackRequest.Create(title, artist).Value;
         return this;
     }
 
-    public ProfileBuilder WithFallback(params string[] keywords)
+    public ProfileBuilder WithFallback(string title, string? artist = null)
     {
-        _fallback = keywords;
+        _fallback = TrackRequest.Create(title, artist).Value;
         return this;
     }
 
@@ -58,5 +58,5 @@ public sealed class ProfileBuilder
         _contacts,
         _byWeather,
         _byDayAndWeather,
-        KeywordSet.Create(_fallback).Value);
+        _fallback);
 }

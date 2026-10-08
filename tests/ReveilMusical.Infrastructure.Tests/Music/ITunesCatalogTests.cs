@@ -18,7 +18,7 @@ public sealed class ITunesCatalogTests : MusicCatalogContractTests, IDisposable
         // iTunes répond en text/javascript, pas en application/json : l'adaptateur doit l'accepter.
         _handler.Enqueue(Fixture.Json(Fixture.Read("itunes-search-soleil.json"), "text/javascript"));
 
-        var result = await CreateSut().SearchAsync(SampleKeyword, TestContext.Current.CancellationToken);
+        var result = await CreateSut().SearchAsync(SampleRequest, TestContext.Current.CancellationToken);
 
         Assert.Equal(
             [new Track("Soleil", "GIMS"), new Track("SOLEIL", "Naïka"), new Track("Soleil", "Françoise Hardy")],
@@ -30,11 +30,22 @@ public sealed class ITunesCatalogTests : MusicCatalogContractTests, IDisposable
     {
         _handler.Enqueue(Fixture.Json("""{"resultCount":0,"results":[]}"""));
 
-        await CreateSut().SearchAsync(Keyword.Create("beau temps").Value, TestContext.Current.CancellationToken);
+        await CreateSut().SearchAsync(TrackRequest.Create("Here Comes the Sun", "The Beatles").Value, TestContext.Current.CancellationToken);
 
         var uri = _handler.Requests.Single().RequestUri!;
         Assert.Equal("/search", uri.AbsolutePath);
-        Assert.Equal("?term=beau%20temps&media=music&entity=song&limit=5&country=FR", uri.Query);
+        Assert.Equal("?term=Here%20Comes%20the%20Sun%20The%20Beatles&media=music&entity=song&limit=5&country=FR", uri.Query);
+    }
+
+    [Fact]
+    public async Task A_track_without_artist_is_searched_by_its_title_alone()
+    {
+        _handler.Enqueue(Fixture.Json("""{"resultCount":0,"results":[]}"""));
+
+        await CreateSut().SearchAsync(TrackRequest.Create("L'été indien").Value, TestContext.Current.CancellationToken);
+
+        var query = Uri.UnescapeDataString(_handler.Requests.Single().RequestUri!.Query);
+        Assert.StartsWith("?term=L'été indien&media=music", query, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -47,7 +58,7 @@ public sealed class ITunesCatalogTests : MusicCatalogContractTests, IDisposable
               {"artistName":"Sans titre"}]}
             """));
 
-        var result = await CreateSut().SearchAsync(SampleKeyword, TestContext.Current.CancellationToken);
+        var result = await CreateSut().SearchAsync(SampleRequest, TestContext.Current.CancellationToken);
 
         Assert.Equal([new Track("Soleil", "GIMS")], result.Value);
     }
@@ -60,7 +71,7 @@ public sealed class ITunesCatalogTests : MusicCatalogContractTests, IDisposable
     {
         _handler.Enqueue(Fixture.Json(body));
 
-        var result = await CreateSut().SearchAsync(SampleKeyword, TestContext.Current.CancellationToken);
+        var result = await CreateSut().SearchAsync(SampleRequest, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorKind.ProviderUnavailable, result.Error.Kind);
     }
@@ -70,7 +81,7 @@ public sealed class ITunesCatalogTests : MusicCatalogContractTests, IDisposable
     {
         _handler.Enqueue(_ => throw new HttpRequestException("DNS"));
 
-        var result = await CreateSut().SearchAsync(SampleKeyword, TestContext.Current.CancellationToken);
+        var result = await CreateSut().SearchAsync(SampleRequest, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorKind.ProviderUnavailable, result.Error.Kind);
     }
@@ -80,7 +91,7 @@ public sealed class ITunesCatalogTests : MusicCatalogContractTests, IDisposable
     {
         _handler.Enqueue(_ => throw new TaskCanceledException("délai HttpClient"));
 
-        var result = await CreateSut().SearchAsync(SampleKeyword, TestContext.Current.CancellationToken);
+        var result = await CreateSut().SearchAsync(SampleRequest, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorKind.Timeout, result.Error.Kind);
     }

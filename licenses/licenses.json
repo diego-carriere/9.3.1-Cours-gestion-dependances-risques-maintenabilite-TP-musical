@@ -1,0 +1,471 @@
+[
+  {
+    "PackageId": "coverlet.MTP",
+    "PackageVersion": "10.1.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://github.com/coverlet-coverage/coverlet"
+  },
+  {
+    "PackageId": "Microsoft.ApplicationInsights",
+    "PackageVersion": "2.23.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://go.microsoft.com/fwlink/?LinkId=392727"
+  },
+  {
+    "PackageId": "Microsoft.AspNetCore.Mvc.Testing",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://asp.net/"
+  },
+  {
+    "PackageId": "Microsoft.AspNetCore.TestHost",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://asp.net/"
+  },
+  {
+    "PackageId": "Microsoft.Bcl.AsyncInterfaces",
+    "PackageVersion": "6.0.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.AmbientMetadata.Application",
+    "PackageVersion": "10.10.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Caching.Abstractions",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Caching.Memory",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Compliance.Abstractions",
+    "PackageVersion": "10.10.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Configuration",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Configuration.Abstractions",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Configuration.Binder",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Configuration.CommandLine",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Configuration.EnvironmentVariables",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Configuration.FileExtensions",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Configuration.Json",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Configuration.UserSecrets",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.DependencyInjection",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.DependencyInjection.Abstractions",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.DependencyInjection.AutoActivation",
+    "PackageVersion": "10.10.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.DependencyModel",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Diagnostics",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Diagnostics.Abstractions",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Diagnostics.ExceptionSummarization",
+    "PackageVersion": "10.10.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.FileProviders.Abstractions",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.FileProviders.Physical",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.FileSystemGlobbing",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Hosting",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Hosting.Abstractions",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Http",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Http.Diagnostics",
+    "PackageVersion": "10.10.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Http.Resilience",
+    "PackageVersion": "10.10.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Logging",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Logging.Abstractions",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Logging.Configuration",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Logging.Console",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Logging.Debug",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Logging.EventLog",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Logging.EventSource",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.ObjectPool",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://asp.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Options",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Options.ConfigurationExtensions",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Options.DataAnnotations",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Primitives",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Resilience",
+    "PackageVersion": "10.10.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Telemetry",
+    "PackageVersion": "10.10.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Extensions.Telemetry.Abstractions",
+    "PackageVersion": "10.10.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "Microsoft.Testing.Extensions.Telemetry",
+    "PackageVersion": "2.4.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://github.com/microsoft/testfx"
+  },
+  {
+    "PackageId": "Microsoft.Testing.Extensions.TrxReport.Abstractions",
+    "PackageVersion": "2.4.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://github.com/microsoft/testfx"
+  },
+  {
+    "PackageId": "Microsoft.Testing.Platform",
+    "PackageVersion": "2.4.1",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://github.com/microsoft/testfx"
+  },
+  {
+    "PackageId": "Microsoft.Testing.Platform.MSBuild",
+    "PackageVersion": "2.4.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://github.com/microsoft/testfx"
+  },
+  {
+    "PackageId": "Microsoft.Win32.Registry",
+    "PackageVersion": "5.0.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://github.com/dotnet/runtime"
+  },
+  {
+    "PackageId": "Polly.Core",
+    "PackageVersion": "8.8.0",
+    "License": "BSD-3-Clause",
+    "LicenseUrl": "https://licenses.nuget.org/BSD-3-Clause",
+    "PackageProjectUrl": "https://github.com/App-vNext/Polly"
+  },
+  {
+    "PackageId": "Polly.Extensions",
+    "PackageVersion": "8.8.0",
+    "License": "BSD-3-Clause",
+    "LicenseUrl": "https://licenses.nuget.org/BSD-3-Clause",
+    "PackageProjectUrl": "https://github.com/App-vNext/Polly"
+  },
+  {
+    "PackageId": "Polly.RateLimiting",
+    "PackageVersion": "8.8.0",
+    "License": "BSD-3-Clause",
+    "LicenseUrl": "https://licenses.nuget.org/BSD-3-Clause",
+    "PackageProjectUrl": "https://github.com/App-vNext/Polly"
+  },
+  {
+    "PackageId": "System.Diagnostics.EventLog",
+    "PackageVersion": "10.0.12",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "System.Security.AccessControl",
+    "PackageVersion": "6.0.1",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "System.Threading.RateLimiting",
+    "PackageVersion": "8.0.0",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "PackageProjectUrl": "https://dot.net/"
+  },
+  {
+    "PackageId": "xunit.analyzers",
+    "PackageVersion": "2.1.0",
+    "License": "Apache-2.0",
+    "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+    "PackageProjectUrl": null
+  },
+  {
+    "PackageId": "xunit.v3",
+    "PackageVersion": "4.0.1",
+    "License": "Apache-2.0",
+    "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+    "PackageProjectUrl": null
+  },
+  {
+    "PackageId": "xunit.v3.assert",
+    "PackageVersion": "4.0.1",
+    "License": "Apache-2.0",
+    "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+    "PackageProjectUrl": null
+  },
+  {
+    "PackageId": "xunit.v3.common",
+    "PackageVersion": "4.0.1",
+    "License": "Apache-2.0",
+    "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+    "PackageProjectUrl": null
+  },
+  {
+    "PackageId": "xunit.v3.core.mtp-v2",
+    "PackageVersion": "4.0.1",
+    "License": "Apache-2.0",
+    "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+    "PackageProjectUrl": null
+  },
+  {
+    "PackageId": "xunit.v3.extensibility.core",
+    "PackageVersion": "4.0.1",
+    "License": "Apache-2.0",
+    "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+    "PackageProjectUrl": null
+  },
+  {
+    "PackageId": "xunit.v3.mtp-v2",
+    "PackageVersion": "4.0.1",
+    "License": "Apache-2.0",
+    "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+    "PackageProjectUrl": null
+  },
+  {
+    "PackageId": "xunit.v3.runner.common",
+    "PackageVersion": "4.0.1",
+    "License": "Apache-2.0",
+    "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+    "PackageProjectUrl": null
+  },
+  {
+    "PackageId": "xunit.v3.runner.inproc.console",
+    "PackageVersion": "4.0.1",
+    "License": "Apache-2.0",
+    "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+    "PackageProjectUrl": null
+  }
+]

@@ -112,3 +112,71 @@ dictionnaire n'ont pas besoin d'une Chain of Responsibility.
 | Tous les fournisseurs en panne | Playlist locale | `trackSource: local-playlist`, `degraded: true` |
 | Canal préféré en panne | Canal suivant de la cascade | `channel` ≠ canal préféré, `degraded: true` |
 | Tous les canaux en panne | Alerte opérateur (log `Critical`) | 503 + `Retry-After` |
+
+## Dépendances et licences
+
+Exigence du brief : aucun composant externe sans vérification préalable de sa **licence** et de sa
+**fraîcheur**. Les deux sont des scripts bloquants, identiques en local et en CI :
+
+| Contrôle | Commande | Bloque sur |
+|---|---|---|
+| Licences | `./licenses/audit.sh` | toute licence, directe ou transitive, absente de [`licenses/allowed-licenses.json`](licenses/allowed-licenses.json) (MIT, Apache-2.0, BSD-3-Clause) ou non identifiée. Le scan brut versionné, [`licenses/licenses.json`](licenses/licenses.json), doit être à jour (la CI le vérifie par `git diff`). |
+| Contrôle négatif | `./licenses/audit-canary.sh` | le gate doit refuser un paquet GPL-3.0, et pour sa licence : sinon il ne protège plus rien. |
+| Fraîcheur | `./licenses/freshness.sh` | paquet vulnérable ou déprécié (direct ou transitif), paquet direct en retard d'une version **majeure**. Un retard mineur n'est qu'un avertissement. En CI, le contrôle tourne aussi chaque semaine : un paquet devient périmé sans qu'on touche au code. |
+
+Central Package Management (`Directory.Packages.props`) avec pinning transitif : une seule version
+par paquet pour toute la solution, réponse directe au conflit transitif de Support J1.
+
+### Paquets directs
+
+Scan du 2026-10-08. « Dernière stable » vient de `dotnet list package --outdated`.
+
+| Paquet | Rôle | Projet | Licence | Installé | Dernière stable |
+|---|---|---|---|---|---|
+| Microsoft.Extensions.DependencyInjection.Abstractions | conteneur IoC (abstractions) | Application | MIT | 10.0.12 | 10.0.12 |
+| Microsoft.Extensions.Logging.Abstractions | journalisation | Application, Infrastructure | MIT | 10.0.12 | 10.0.12 |
+| Microsoft.Extensions.Options | options validées | Application | MIT | 10.0.12 | 10.0.12 |
+| Microsoft.Extensions.Options.ConfigurationExtensions | liaison options ↔ configuration | Infrastructure | MIT | 10.0.12 | 10.0.12 |
+| Microsoft.Extensions.Options.DataAnnotations | validation des options au démarrage | Infrastructure | MIT | 10.0.12 | 10.0.12 |
+| Microsoft.Extensions.Caching.Memory | cache des recherches musicales | Infrastructure | MIT | 10.0.12 | 10.0.12 |
+| Microsoft.Extensions.Http.Resilience | `IHttpClientFactory` + pipeline Polly HTTP | Infrastructure | MIT | 10.10.0 | 10.10.0 |
+| Polly.Extensions | pipelines non HTTP des canaux | Infrastructure | BSD-3-Clause | 8.8.0 | 8.8.0 |
+| Polly.RateLimiting | quotas iTunes / MusicBrainz | Infrastructure | BSD-3-Clause | 8.8.0 | 8.8.0 |
+| xunit.v3 | framework de test | tests | Apache-2.0 | 4.0.1 | 4.0.1 |
+| xunit.v3.assert, xunit.v3.extensibility.core | suites de contrat partagées | TestSupport | Apache-2.0 | 4.0.1 | 4.0.1 |
+| coverlet.MTP | couverture de code | tests | MIT | 10.1.0 | 10.1.0 |
+| Microsoft.AspNetCore.Mvc.Testing | hôte en mémoire pour les E2E | Api.E2ETests | MIT | 10.0.12 | 10.0.12 |
+| Microsoft.Extensions.DependencyInjection | conteneur concret pour les tests de composition | Application.Tests, Infrastructure.Tests | MIT | 10.0.12 | 10.0.12 |
+| Microsoft.Extensions.Configuration | configuration en mémoire pour les tests | Infrastructure.Tests | MIT | 10.0.12 | 10.0.12 |
+
+Outils (`dotnet-tools.json`) : `nuget-license` 4.0.18 (Apache-2.0, à jour) pour l'audit,
+`dotnet-reportgenerator-globaltool` 5.5.11 (Apache-2.0, à jour) pour le rapport de couverture.
+SDK .NET 10.0.401 et framework partagé ASP.NET Core : MIT.
+
+### Toute la chaîne transitive
+
+**67 paquets** distincts, tests compris : 55 MIT, 9 Apache-2.0, 3 BSD-3-Clause. **Aucune licence
+copyleft, aucune licence propriétaire.** L'hôte ne publie que 12 paquets NuGet (MIT et
+BSD-3-Clause) ; le reste ne sert qu'aux tests ou est fourni par le framework partagé.
+
+### Ce qui pose question, et pourquoi c'est accepté
+
+| Composant | Question | Décision |
+|---|---|---|
+| `dotnet-project-licenses` (outil d'audit de TP-meteo) | Son dépôt se déclare **abandonné** et renvoie vers une réécriture. | **Remplacé** par `nuget-license` (même rôle, maintenu, Apache-2.0). La fraîcheur vaut aussi pour l'outillage. |
+| `Microsoft.ApplicationInsights` 2.23.0 (transitif) | Télémétrie : la plateforme de test (`Microsoft.Testing.Extensions.Telemetry`, tirée par xunit.v3) peut envoyer des données d'usage à Microsoft. Question de souveraineté (Support J2), et une version 3.x existe. | Tests uniquement, jamais distribué. La CI pose `TESTINGPLATFORM_TELEMETRY_OPTOUT=1` ; à faire aussi en local. La version est le choix de xunit.v3 : on ne la force pas. |
+| `Microsoft.Testing.Platform` 2.4.x (transitif) | Retard mineur (2.5.1 disponible). | Choix de xunit.v3 4.0.1, tests uniquement : avertissement accepté. |
+| `System.Threading.RateLimiting` 8.0.0 (transitif) | Version ancienne, tirée par `Polly.RateLimiting`. | Seulement dans le graphe de la bibliothèque Infrastructure : dans l'hôte, le framework partagé ASP.NET Core fournit sa propre version 10 (`dotnet nuget why src/ReveilMusical.Api ...` : aucune dépendance de paquet). Rien d'ancien n'est publié. |
+| `Microsoft.Bcl.AsyncInterfaces` 6.0.0 (transitif) | Version ancienne. | Tests uniquement, sans vulnérabilité ni dépréciation connue. |
+| xunit.v3 plutôt que xunit 2.x | xunit 2.x (TP-meteo) est en maintenance ; v3 impose Microsoft.Testing.Platform. | Choisi pour la fraîcheur. Conséquence : coverlet.MTP remplace coverlet.collector. |
+| Polly (BSD-3-Clause) | Obligation : reproduire l'avis de copyright dans la documentation d'une distribution binaire. | À joindre à toute distribution (image Docker comprise). |
+
+## Services externes
+
+Support J1 : « une dépendance n'est pas que du code ». Les deux API musicales sont des dépendances
+externes non contrôlées, isolées derrière `IMusicCatalog` et remplaçables par configuration.
+
+| Service | Conditions (vérifiées le 2026-10-08) | Traduction dans le code |
+|---|---|---|
+| **iTunes Search API** (Apple) | Gratuite, sans clé. Environ **20 requêtes/minute** (« subject to change »). Le contenu promotionnel (extraits, pochettes) ne sert qu'à promouvoir la boutique, avec attribution et un badge iTunes à proximité, en streaming seulement. Source : [performance-partners.apple.com/search-api](https://performance-partners.apple.com/search-api). | Limiteur à 20 req/min, cache 24 h par mot-clé. Seuls le titre et l'artiste sont repris : aucun extrait, aucune pochette, aucun `trackViewUrl` n'est servi, ce qui reste en deçà des usages encadrés. Le passage en production d'un usage promotionnel demanderait une relecture juridique. |
+| **MusicBrainz API** (MetaBrainz Foundation) | En moyenne **1 requête/seconde par IP** ; au-delà, 503. Un **User-Agent identifiable** (« Application/version ( contact ) ») est exigé. Les données cœur (enregistrements, titres, artistes) sont sous **CC0**, les données complémentaires sous CC BY-NC-SA 3.0. Sources : [Rate Limiting](https://musicbrainz.org/doc/MusicBrainz_API/Rate_Limiting), [Data License](https://musicbrainz.org/doc/About/Data_License). | Limiteur à 1 req/s avec une petite file d'attente. User-Agent lu en configuration et validé au démarrage. Seules les données cœur (CC0) sont utilisées. |

@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ReveilMusical.Api/ReveilMusical.Api.csproj" />
+    <Project Path="src/ReveilMusical.Application/ReveilMusical.Application.csproj" />
+    <Project Path="src/ReveilMusical.Domain/ReveilMusical.Domain.csproj" />
+    <Project Path="src/ReveilMusical.FakeVendors/ReveilMusical.FakeVendors.csproj" />
+    <Project Path="src/ReveilMusical.Infrastructure/ReveilMusical.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ReveilMusical.Api.E2ETests/ReveilMusical.Api.E2ETests.csproj" />
+    <Project Path="tests/ReveilMusical.Application.Tests/ReveilMusical.Application.Tests.csproj" />
+    <Project Path="tests/ReveilMusical.Domain.Tests/ReveilMusical.Domain.Tests.csproj" />
+    <Project Path="tests/ReveilMusical.FakeVendors.Tests/ReveilMusical.FakeVendors.Tests.csproj" />
+    <Project Path="tests/ReveilMusical.Infrastructure.Tests/ReveilMusical.Infrastructure.Tests.csproj" />
+    <Project Path="tests/ReveilMusical.TestSupport/ReveilMusical.TestSupport.csproj" />
+  </Folder>
+</Solution>

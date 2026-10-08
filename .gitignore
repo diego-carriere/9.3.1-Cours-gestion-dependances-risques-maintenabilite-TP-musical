@@ -1,0 +1,25 @@
+# .NET
+bin/
+obj/
+out/
+*.user
+*.suo
+.vs/
+TestResults/
+*.trx
+
+# Rapports de couverture (scripts/coverage.sh) et sorties des SDK simulés
+coverage/
+outbox/
+
+# Espace de travail des plans (superpowers)
+.superpowers/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

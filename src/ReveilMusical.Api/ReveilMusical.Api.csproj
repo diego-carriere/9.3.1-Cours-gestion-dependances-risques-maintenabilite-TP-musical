@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <!-- Tue la dépendance cachée "culture" au niveau de l'hôte (Support J1). -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ReveilMusical.Application\ReveilMusical.Application.csproj" />
+    <ProjectReference Include="..\ReveilMusical.Infrastructure\ReveilMusical.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

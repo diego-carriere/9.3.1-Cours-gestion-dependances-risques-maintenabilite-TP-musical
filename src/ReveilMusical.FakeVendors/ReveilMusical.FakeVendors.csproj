@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Joue le rôle de trois SDK tiers (mail, SMS, push) : ne connaît rien du Réveil musical,
+       ni le Domaine ni la DI. Seule l'Infrastructure le référence, comme un paquet externe. -->
+
+</Project>

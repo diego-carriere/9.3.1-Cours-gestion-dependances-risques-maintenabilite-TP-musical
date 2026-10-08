@@ -33,7 +33,7 @@ holds the first exercise (TP1–TP4). No code exists yet.
   an `IServiceCollection` extension.
 - Microsoft.Extensions.DependencyInjection, options bound from `appsettings.json` and validated, and HTTP through
   `IHttpClientFactory` (TP-meteo adds `Microsoft.Extensions.Http.Resilience`).
-- xUnit + coverlet.collector. Tests run offline with a faked HTTP transport, and one contract suite runs against
+- xunit.v3 on Microsoft.Testing.Platform (`global.json` `test.runner`), coverage through coverlet.MTP. Tests run offline with a faked HTTP transport, and one contract suite runs against
   every implementation of a port.
 - Licence gate: TP-meteo's `licenses/audit.sh` (`dotnet-project-licenses` as a local tool, a whitelist, CI
   failure on anything else, plus a GPL canary) is the model.
@@ -42,7 +42,7 @@ Commands, from the repo root, once the solution exists:
 
 - `dotnet build`: fails on any warning
 - `dotnet test`; for a single test, `dotnet test --filter "FullyQualifiedName~<Class>.<Method>"`
-- `dotnet test --collect:"XPlat Code Coverage"`: coverage (the brief asks for good coverage)
+- `./scripts/coverage.sh`: coverage with the blocking threshold, HTML report in `coverage/` (the brief asks for good coverage)
 - `dotnet list package --include-transitive --outdated` (and `--vulnerable`): input for the README table
 
 Commits use plain conventional commits, e.g. `feat(infra): iTunes adapter`, with no `[TP-…]` prefix. Never add

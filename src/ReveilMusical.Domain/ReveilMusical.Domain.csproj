@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Aucune référence, ni projet ni paquet : le métier ne dépend que de la BCL
+       (vérifié par ReveilMusical.Domain.Tests.ArchitectureTests). -->
+
+</Project>

@@ -36,8 +36,22 @@ internal sealed class SmsChannelAdapter : INotificationChannel
         };
     }
 
-    private static string FitInOneSms(string body) =>
-        body.Length <= SmsGatewayClient.MaxLength
-            ? body
-            : string.Concat(body.AsSpan(0, SmsGatewayClient.MaxLength - Ellipsis.Length), Ellipsis);
+    private static string FitInOneSms(string body)
+    {
+        if (body.Length <= SmsGatewayClient.MaxLength)
+        {
+            return body;
+        }
+
+        var cut = SmsGatewayClient.MaxLength - Ellipsis.Length;
+
+        // Jamais au milieu d'une paire de substitution (un emoji dans un titre) : l'UTF-16 serait
+        // invalide, et une vraie passerelle refuserait le message.
+        if (char.IsHighSurrogate(body[cut - 1]))
+        {
+            cut--;
+        }
+
+        return string.Concat(body.AsSpan(0, cut), Ellipsis);
+    }
 }

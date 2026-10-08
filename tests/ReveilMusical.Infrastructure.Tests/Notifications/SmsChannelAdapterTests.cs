@@ -30,6 +30,27 @@ public sealed class SmsChannelAdapterTests : NotificationChannelContractTests, I
     }
 
     [Fact]
+    public async Task Truncation_never_splits_an_emoji_in_two()
+    {
+        // Le titre est placé pour qu'un emoji (deux unités UTF-16) chevauche la coupe.
+        var titleOffset = WakeUpMessage.Compose("Alice", new Track("X", "A"), DayOfWeek.Monday, WeatherCondition.Sunny)
+            .Body.IndexOf('X', StringComparison.Ordinal);
+        var cut = SmsGatewayClient.MaxLength - 1;
+        var title = new string('t', cut - 1 - titleOffset) + "🎵" + new string('t', 50);
+        var message = WakeUpMessage.Compose("Alice", new Track(title, "Artiste"), DayOfWeek.Monday, WeatherCondition.Sunny);
+        Assert.True(char.IsHighSurrogate(message.Body[cut - 1]));
+        var gateway = new RecordingGateway(SmsStatusCodes.Accepted);
+
+        await new SmsChannelAdapter(gateway).SendAsync(ValidContact, message, TestContext.Current.CancellationToken);
+
+        // Un encodeur strict lève sur une demi-paire de substitution.
+        var strictUtf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+        Assert.Null(Record.Exception(() => strictUtf8.GetBytes(gateway.LastText!)));
+        Assert.True(gateway.LastText!.Length <= SmsGatewayClient.MaxLength);
+        Assert.EndsWith("…", gateway.LastText, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task A_short_body_is_sent_unchanged()
     {
         var gateway = new RecordingGateway(SmsStatusCodes.Accepted);

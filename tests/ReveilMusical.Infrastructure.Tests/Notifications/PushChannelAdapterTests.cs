@@ -39,6 +39,19 @@ public sealed class PushChannelAdapterTests : NotificationChannelContractTests, 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => pending);
     }
 
+    [Theory]
+    [InlineData(PushDeliveryState.Rejected)]
+    [InlineData(PushDeliveryState.ServiceDown)]
+    public async Task A_vendor_reason_that_repeats_the_token_never_reaches_the_error_message(PushDeliveryState state)
+    {
+        // Un vrai SDK peut citer le jeton dans son texte libre : l'adaptateur ne le recopie pas.
+        var service = new ReportingPushService(new PushDeliveryReport(null, state, $"token {ValidContact.Value} is gone"));
+
+        var result = await new PushChannelAdapter(service).SendAsync(ValidContact, SampleMessage, TestContext.Current.CancellationToken);
+
+        Assert.DoesNotContain(ValidContact.Value, result.Error.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
     public void Dispose() => _outbox.Dispose();
 
     protected override INotificationChannel CreateWorkingSut() => Create(simulateOutage: false);
@@ -61,6 +74,11 @@ public sealed class PushChannelAdapterTests : NotificationChannelContractTests, 
             Last = request;
             onCompleted(new PushDeliveryReport("ticket-1", PushDeliveryState.Delivered, null));
         }
+    }
+
+    private sealed class ReportingPushService(PushDeliveryReport report) : IPushService
+    {
+        public void Deliver(PushRequest request, Action<PushDeliveryReport> onCompleted) => onCompleted(report);
     }
 
     /// <summary>Un service qui ne rappelle jamais : seul un délai ou une annulation y met fin.</summary>

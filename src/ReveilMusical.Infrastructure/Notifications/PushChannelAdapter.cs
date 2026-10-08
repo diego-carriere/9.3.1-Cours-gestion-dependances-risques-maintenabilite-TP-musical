@@ -33,12 +33,14 @@ internal sealed class PushChannelAdapter : INotificationChannel
 
         var delivered = await completion.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
 
+        // L'état rapporté par le SDK, pas son texte libre (Reason) : il peut répéter le jeton, et le
+        // message d'erreur part dans les journaux, l'alerte et la réponse HTTP.
         return delivered.State switch
         {
             PushDeliveryState.Delivered when delivered.TicketId is not null => Result.Success(new DeliveryReceipt(delivered.TicketId)),
             PushDeliveryState.Rejected => Result.Failure<DeliveryReceipt>(
-                ErrorKind.InvalidContact, $"Jeton d'appareil refusé : {delivered.Reason}"),
-            _ => Result.Failure<DeliveryReceipt>(ErrorKind.ChannelUnavailable, $"Service push indisponible : {delivered.Reason}"),
+                ErrorKind.InvalidContact, "Jeton d'appareil refusé par le service push."),
+            _ => Result.Failure<DeliveryReceipt>(ErrorKind.ChannelUnavailable, $"Service push indisponible ({delivered.State})."),
         };
     }
 }

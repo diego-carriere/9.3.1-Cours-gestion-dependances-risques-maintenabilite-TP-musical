@@ -1,4 +1,5 @@
 using ReveilMusical.Infrastructure.Users;
+using ReveilMusical.TestSupport;
 
 namespace ReveilMusical.Infrastructure.Tests.Users;
 
@@ -39,11 +40,24 @@ public sealed class UserDirectoryOptionsValidatorTests
     }
 
     [Fact]
+    public void A_preferred_channel_that_no_adapter_is_registered_under_prevents_startup()
+    {
+        var record = InMemoryUserProfileProviderTests.Alice();
+        record.PreferredChannel = "emial";
+
+        var result = Validate(record);
+
+        Assert.True(result.Failed);
+        Assert.Contains("aucun canal n'est enregistré sous 'emial'", result.FailureMessage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Two_records_with_the_same_id_prevent_startup()
     {
         Assert.True(Validate(InMemoryUserProfileProviderTests.Alice(), InMemoryUserProfileProviderTests.Alice()).Failed);
     }
 
     private static Microsoft.Extensions.Options.ValidateOptionsResult Validate(params UserRecord[] users) =>
-        new UserDirectoryOptionsValidator().Validate(null, new UserDirectoryOptions { Users = [.. users] });
+        new UserDirectoryOptionsValidator(FakeNotificationChannelResolver.Knowing("push", "sms", "email"))
+            .Validate(null, new UserDirectoryOptions { Users = [.. users] });
 }

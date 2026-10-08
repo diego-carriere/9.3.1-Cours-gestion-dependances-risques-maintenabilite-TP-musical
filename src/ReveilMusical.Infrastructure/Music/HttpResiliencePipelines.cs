@@ -64,10 +64,14 @@ internal static class HttpResiliencePipelines
         AutoReplenishment = true,
     });
 
-    // Ne réessaie jamais un circuit ouvert, un quota épuisé ni un 4xx : aucun n'est transitoire
-    // à l'échelle d'un réessai, et réessayer brûlerait le quota.
+    // Ne réessaie jamais un circuit ouvert, un quota épuisé (le nôtre, ou celui du fournisseur : 429,
+    // et 503 chez MusicBrainz, qui signale ainsi son quota) ni un autre 4xx : aucun n'est transitoire
+    // à l'échelle d'un réessai, et réessayer brûlerait le quota. Le fournisseur suivant prend le
+    // relais ; ces réponses comptent quand même pour le disjoncteur (IsFailure).
     private static bool ShouldRetry(Outcome<HttpResponseMessage> outcome) =>
-        outcome.Exception is not (BrokenCircuitException or RateLimiterRejectedException) && IsFailure(outcome);
+        outcome.Exception is not (BrokenCircuitException or RateLimiterRejectedException)
+        && outcome.Result?.StatusCode is not (HttpStatusCode.TooManyRequests or HttpStatusCode.ServiceUnavailable)
+        && IsFailure(outcome);
 
     private static bool IsFailure(Outcome<HttpResponseMessage> outcome)
     {

@@ -65,6 +65,33 @@ public sealed class MusicRegistrationTests : IDisposable
         Assert.Equal(1, _itunes.CallCount);
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)] // le signal de quota de MusicBrainz
+    public async Task A_rate_limit_answer_is_not_retried_so_the_quota_is_not_burnt(HttpStatusCode status)
+    {
+        _itunes.Enqueue(new HttpResponseMessage(status));
+        using var provider = BuildProvider(("Music:Providers:1", null));
+
+        var result = await provider.GetRequiredService<IMusicCatalog>().SearchAsync(TrackRequest.Create("soleil").Value, TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(1, _itunes.CallCount);
+    }
+
+    [Fact]
+    public async Task A_provider_listed_twice_is_tried_once()
+    {
+        _itunes.Enqueue(new HttpResponseMessage(HttpStatusCode.InternalServerError));
+        _itunes.Enqueue(new HttpResponseMessage(HttpStatusCode.InternalServerError));
+        using var provider = BuildProvider(("Music:Providers:1", "ITunes"));
+
+        var result = await provider.GetRequiredService<IMusicCatalog>().SearchAsync(TrackRequest.Create("soleil").Value, TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(2, _itunes.CallCount); // une tentative + un réessai, pour une seule entrée
+    }
+
     [Fact]
     public async Task The_itunes_rate_limit_rejects_without_calling_the_provider()
     {

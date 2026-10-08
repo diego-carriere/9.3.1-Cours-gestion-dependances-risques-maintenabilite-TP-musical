@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -19,12 +20,23 @@ internal static class NotificationsServiceCollectionExtensions
 
     public static IServiceCollection AddNotifications(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddOptions<ChannelResilienceOptions>().Bind(configuration.GetSection(ChannelResilienceOptions.SectionName));
+        services.AddOptions<ChannelResilienceOptions>()
+            .Bind(configuration.GetSection(ChannelResilienceOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
-        // Les SDK sont des singletons : ils détiennent le verrou de leur fichier de sortie.
-        services.AddVendorSettings<SmtpMailSettings>(configuration, "Mail");
-        services.AddVendorSettings<SmsGatewaySettings>(configuration, "Sms");
-        services.AddVendorSettings<PushServiceSettings>(configuration, "Push");
+        // Les SDK simulés ne connaissent ni la DI ni les annotations, comme de vraies bibliothèques
+        // tierces : leurs réglages sont validés ici. Ce sont des singletons, qui détiennent le verrou
+        // de leur fichier de sortie.
+        services.AddVendorSettings<SmtpMailSettings>(configuration, "Mail",
+            static s => HasOutbox(s.OutboxDirectory) && MailAddress.TryCreate(s.FromAddress, out _),
+            "dossier de sortie (OutboxDirectory) et adresse d'expéditeur (FromAddress) valide requis");
+        services.AddVendorSettings<SmsGatewaySettings>(configuration, "Sms",
+            static s => HasOutbox(s.OutboxDirectory) && !string.IsNullOrWhiteSpace(s.SenderName),
+            "dossier de sortie (OutboxDirectory) et nom d'expéditeur (SenderName) requis");
+        services.AddVendorSettings<PushServiceSettings>(configuration, "Push",
+            static s => HasOutbox(s.OutboxDirectory),
+            "dossier de sortie (OutboxDirectory) requis");
         services.TryAddSingleton<SmtpMailClient>();
         services.TryAddSingleton<ISmsGatewayClient, SmsGatewayClient>();
         services.TryAddSingleton<IPushService, PushService>();
@@ -72,10 +84,16 @@ internal static class NotificationsServiceCollectionExtensions
         return services;
     }
 
-    private static void AddVendorSettings<TSettings>(this IServiceCollection services, IConfiguration configuration, string vendor)
+    private static void AddVendorSettings<TSettings>(
+        this IServiceCollection services, IConfiguration configuration, string vendor, Func<TSettings, bool> isValid, string requirement)
         where TSettings : class
     {
-        services.AddOptions<TSettings>().Bind(configuration.GetSection($"{VendorsSection}:{vendor}"));
+        services.AddOptions<TSettings>()
+            .Bind(configuration.GetSection($"{VendorsSection}:{vendor}"))
+            .Validate(isValid, $"{VendorsSection}:{vendor} : {requirement}.")
+            .ValidateOnStart();
         services.TryAddSingleton(static provider => provider.GetRequiredService<IOptions<TSettings>>().Value);
     }
+
+    private static bool HasOutbox(string directory) => !string.IsNullOrWhiteSpace(directory);
 }

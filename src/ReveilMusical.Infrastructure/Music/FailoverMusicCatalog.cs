@@ -13,6 +13,12 @@ namespace ReveilMusical.Infrastructure.Music;
 /// éditer la configuration change de source sans recompiler ni redémarrer. Une liste vide est une
 /// réponse (rien ne correspond), pas une panne : seule une panne passe au fournisseur suivant.
 /// </summary>
+/// <remarks>
+/// Lecture brute plutôt qu'<c>IOptionsMonitor</c> : un rechargement à chaud invalide ferait lever le
+/// moniteur à chaque réveil, alors qu'ici une clé inconnue est simplement sautée. La validation de
+/// <see cref="MusicProvidersOptions"/> couvre le démarrage. Un fournisseur cité deux fois (une
+/// variable d'environnement qui écrase la première entrée, par exemple) n'est essayé qu'une fois.
+/// </remarks>
 internal sealed partial class FailoverMusicCatalog : IMusicCatalog
 {
     private readonly IServiceProvider _serviceProvider;
@@ -57,10 +63,10 @@ internal sealed partial class FailoverMusicCatalog : IMusicCatalog
     }
 
     private IEnumerable<string> ConfiguredProviders() =>
-        from child in _configuration.GetSection($"{MusicProvidersOptions.SectionName}:{nameof(MusicProvidersOptions.Providers)}").GetChildren()
+        (from child in _configuration.GetSection($"{MusicProvidersOptions.SectionName}:{nameof(MusicProvidersOptions.Providers)}").GetChildren()
         let key = ProviderKeys.Normalize(child.Value)
         where key.Length > 0
-        select key;
+        select key).Distinct(StringComparer.Ordinal);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Music:Providers names unknown provider '{Key}'; skipped.")]
     private partial void LogUnknownProvider(string key);

@@ -14,15 +14,24 @@ public sealed class WakeUpOptionsTests
     [Fact]
     public void Valid_options_pass_validation()
     {
-        var result = new WakeUpOptionsValidator().Validate(null, new WakeUpOptions { FallbackChannels = ["push", "sms"] });
+        var result = Validator().Validate(null, new WakeUpOptions { FallbackChannels = ["push", "sms"] });
 
         Assert.True(result.Succeeded);
     }
 
     [Fact]
+    public void A_fallback_channel_that_no_adapter_is_registered_under_is_rejected()
+    {
+        var result = Validator().Validate(null, new WakeUpOptions { FallbackChannels = ["sms", "emial"] });
+
+        Assert.True(result.Failed);
+        Assert.Contains("aucun canal n'est enregistré sous 'emial'", result.FailureMessage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void An_invalid_fallback_channel_identifier_is_rejected()
     {
-        var result = new WakeUpOptionsValidator().Validate(null, new WakeUpOptions { FallbackChannels = ["sms", "push notif"] });
+        var result = Validator().Validate(null, new WakeUpOptions { FallbackChannels = ["sms", "push notif"] });
 
         Assert.True(result.Failed);
         Assert.Contains("push notif", result.FailureMessage, StringComparison.Ordinal);
@@ -46,6 +55,8 @@ public sealed class WakeUpOptionsTests
         Assert.Throws<OptionsValidationException>(() => provider.GetRequiredService<IOptions<WakeUpOptions>>().Value);
     }
 
+    private static WakeUpOptionsValidator Validator() => new(FakeNotificationChannelResolver.Knowing("push", "sms", "email"));
+
     private static ServiceProvider BuildProvider(Action<WakeUpOptions> configure)
     {
         var services = new ServiceCollection();
@@ -53,7 +64,7 @@ public sealed class WakeUpOptionsTests
         services.AddSingleton<IUserProfileProvider, FakeUserProfileProvider>();
         services.AddSingleton<IMusicCatalog, FakeMusicCatalog>();
         services.AddSingleton<IFallbackPlaylist, FakeFallbackPlaylist>();
-        services.AddSingleton<INotificationChannelResolver, FakeNotificationChannelResolver>();
+        services.AddSingleton<INotificationChannelResolver>(FakeNotificationChannelResolver.Knowing("email"));
         services.AddSingleton<IOperatorAlerter, RecordingOperatorAlerter>();
         services.AddSingleton<IRandom>(new FakeRandom());
         services.AddSingleton<IClock>(new FakeClock(DateTimeOffset.UnixEpoch));

@@ -64,8 +64,10 @@ public sealed class MusicCacheOptions
     public const string SectionName = "Music:Cache";
 
     /// <summary>Durée pendant laquelle une recherche est resservie sans rappeler le fournisseur.</summary>
+    [Range(typeof(TimeSpan), "00:00:01", "30.00:00:00", ParseLimitsInInvariantCulture = true)]
     public TimeSpan Freshness { get; set; } = TimeSpan.FromHours(24);
 
     /// <summary>Durée pendant laquelle une recherche périmée reste utilisable si le fournisseur tombe.</summary>
+    [Range(typeof(TimeSpan), "00:00:01", "30.00:00:00", ParseLimitsInInvariantCulture = true)]
     public TimeSpan StaleRetention { get; set; } = TimeSpan.FromDays(7);
 }

@@ -13,5 +13,17 @@ public sealed class FakeNotificationChannelResolver : INotificationChannelResolv
         return this;
     }
 
+    /// <summary>Enregistre chaque canal avec un <see cref="FakeNotificationChannel"/> neuf.</summary>
+    public static FakeNotificationChannelResolver Knowing(params string[] channels)
+    {
+        var resolver = new FakeNotificationChannelResolver();
+        foreach (var channel in channels)
+        {
+            resolver.With(channel, new FakeNotificationChannel());
+        }
+
+        return resolver;
+    }
+
     public INotificationChannel? Resolve(ChannelId channel) => _channels.GetValueOrDefault(channel);
 }

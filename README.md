@@ -231,7 +231,7 @@ de démarrer s'il y en avait une.
 |---|---|
 | Horloge | `IClock` ; `DateTimeOffset.UtcNow` n'apparaît que dans `SystemClock` (et dans les SDK simulés, qui jouent des bibliothèques tierces). |
 | Hasard | `IRandom` ; `Random.Shared` n'apparaît que dans `SystemRandom`. En test, `FakeRandom` rend chaque tirage déterministe. |
-| Configuration | Tout passe par des options liées et **validées au démarrage** : User-Agent MusicBrainz, clés de fournisseurs, identifiants de canaux, profils. L'application refuse de démarrer plutôt que d'échouer à 6 h du matin. |
+| Configuration | Tout passe par des options liées et **validées au démarrage** : User-Agent MusicBrainz, clés de fournisseurs, profils, délais et seuils de résilience, cache, réglages des SDK simulés. Un canal cité (canal préféré, `Wakeup:FallbackChannels`) doit être enregistré dans le conteneur : une faute de frappe comme `emial` bloque le démarrage, sans liste de canaux en dur. L'application refuse de démarrer plutôt que d'échouer à 6 h du matin. |
 | Culture | Hôte en `InvariantGlobalization` ; noms français des jours et des météos dans une table du Domaine, pas dans `CultureInfo("fr-FR")` ; formatage des URL en culture invariante. |
 | Système de fichiers | Les dossiers de sortie des SDK simulés viennent de la configuration. |
 | État global | Aucun champ statique mutable dans le Domaine, l'Application, l'Infrastructure ou l'hôte (vérifié par réflexion). |
@@ -337,7 +337,7 @@ externes non contrôlées, isolées derrière `IMusicCatalog` et remplaçables p
 | Service | Conditions (vérifiées le 2026-10-08) | Traduction dans le code |
 |---|---|---|
 | **iTunes Search API** (Apple) | Gratuite, sans clé. Environ **20 requêtes/minute** (« subject to change »). Le contenu promotionnel (extraits, pochettes) ne sert qu'à promouvoir la boutique, avec attribution et un badge iTunes à proximité, en streaming seulement. Source : [performance-partners.apple.com/search-api](https://performance-partners.apple.com/search-api). | Limiteur à 20 req/min, cache 24 h par morceau demandé. Seuls le titre et l'artiste sont repris : aucun extrait, aucune pochette, aucun `trackViewUrl` n'est servi, ce qui reste en deçà des usages encadrés. Le passage en production d'un usage promotionnel demanderait une relecture juridique. |
-| **MusicBrainz API** (MetaBrainz Foundation) | En moyenne **1 requête/seconde par IP** ; au-delà, 503. Un **User-Agent identifiable** (« Application/version ( contact ) ») est exigé. Les données cœur (enregistrements, titres, artistes) sont sous **CC0**, les données complémentaires sous CC BY-NC-SA 3.0. Sources : [Rate Limiting](https://musicbrainz.org/doc/MusicBrainz_API/Rate_Limiting), [Data License](https://musicbrainz.org/doc/About/Data_License). | Limiteur à 1 req/s avec une petite file d'attente. User-Agent lu en configuration et validé au démarrage. Seules les données cœur (CC0) sont utilisées. |
+| **MusicBrainz API** (MetaBrainz Foundation) | En moyenne **1 requête/seconde par IP** ; au-delà, 503. Un **User-Agent identifiable** (« Application/version ( contact ) ») est exigé. Les données cœur (enregistrements, titres, artistes) sont sous **CC0**, les données complémentaires sous CC BY-NC-SA 3.0. Sources : [Rate Limiting](https://musicbrainz.org/doc/MusicBrainz_API/Rate_Limiting), [Data License](https://musicbrainz.org/doc/About/Data_License). | Limiteur à 1 req/s avec une petite file d'attente. Un 429 ou un 503 (son signal de quota) n'est pas réessayé : le fournisseur suivant prend le relais. Requête Lucene par champ (`recording:"…" AND artist:"…"`), valeurs échappées. User-Agent lu en configuration et validé au démarrage. Seules les données cœur (CC0) sont utilisées. |
 
 ## Tests et couverture
 
@@ -401,7 +401,10 @@ test métier ne casse quand un fournisseur change.
   `IOperatorAlerter`, sans rien changer ailleurs.
 - Le quota iTunes est local au processus : plusieurs instances de l'hôte se partageraient le
   quota réel sans se coordonner. Il faudrait alors un limiteur distribué, ou un cache partagé.
-- Seul l'ordre des fournisseurs est relu à chaud ; les autres réglages se lisent au démarrage.
+- Seul l'ordre des fournisseurs est relu à chaud ; les autres réglages se lisent au démarrage. Il
+  est lu brut, sans `IOptionsMonitor` : un rechargement invalide ferait lever le moniteur à chaque
+  réveil, alors qu'une clé inconnue est simplement sautée. Un fournisseur cité deux fois n'est
+  essayé qu'une fois.
 - Le `Dockerfile` est construit par la CI, pas en local (Docker absent de l'environnement de
   développement). L'audit de licences couvre les paquets NuGet, pas la couche système de l'image.
 - Les scripts sont en bash : Linux, macOS et CI ; sous Windows, Git Bash ou WSL.

@@ -23,8 +23,14 @@ internal static class MusicServiceCollectionExtensions
             .Bind(configuration.GetSection(MusicBrainzOptions.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart(); // L'application refuse de démarrer sans User-Agent MusicBrainz identifiable.
-        services.AddOptions<MusicCacheOptions>().Bind(configuration.GetSection(MusicCacheOptions.SectionName));
-        services.AddOptions<MusicResilienceOptions>().Bind(configuration.GetSection(MusicResilienceOptions.SectionName));
+        services.AddOptions<MusicCacheOptions>()
+            .Bind(configuration.GetSection(MusicCacheOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        services.AddOptions<MusicResilienceOptions>()
+            .Bind(configuration.GetSection(MusicResilienceOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         // Singleton : un cache par requête ne cache rien.
         services.AddMemoryCache();

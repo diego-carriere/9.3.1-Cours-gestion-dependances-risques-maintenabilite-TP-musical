@@ -22,6 +22,14 @@ public sealed class CompositionTests
     [InlineData("Music:Providers:0", "spotify", "spotify")]
     [InlineData("Wakeup:FallbackChannels:0", "push notif", "push notif")]
     [InlineData("UserService:Users:0:PreferredChannel", "pigeon voyageur", "Users:0")]
+    [InlineData("UserService:Users:0:PreferredChannel", "emial", "emial")]
+    [InlineData("Wakeup:FallbackChannels:1", "fax", "fax")]
+    [InlineData("Music:Cache:Freshness", "00:00:00", "Freshness")]
+    [InlineData("Resilience:Music:ITunes:AttemptTimeout", "00:00:00", "AttemptTimeout")]
+    [InlineData("Resilience:Music:MusicBrainz:CircuitBreakerMinimumThroughput", "1", "CircuitBreakerMinimumThroughput")]
+    [InlineData("Resilience:Channels:RetryCount", "-1", "RetryCount")]
+    [InlineData("Vendors:Mail:FromAddress", "pas une adresse", "Vendors:Mail")]
+    [InlineData("Vendors:Sms:OutboxDirectory", " ", "Vendors:Sms")]
     public async Task The_application_refuses_to_start_on_invalid_configuration(string key, string value, string expectedInMessage)
     {
         await using var factory = new ReveilApiFactory(new Dictionary<string, string?> { [key] = value });

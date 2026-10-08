@@ -1,0 +1,41 @@
+{
+  "resultCount": 3,
+  "results": [
+    {
+      "wrapperType": "track",
+      "kind": "song",
+      "artistName": "GIMS",
+      "collectionName": "Soleil - Single",
+      "trackName": "Soleil",
+      "trackViewUrl": "https://music.apple.com/us/album/soleil/1889860434?i=1889860646&uo=4",
+      "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f8/0d/17/f80d172a-546a-807f-57d2-4a821c412279/mzaf_9764132341514981407.plus.aac.p.m4a",
+      "trackTimeMillis": 131564,
+      "country": "USA",
+      "primaryGenreName": "Hip-Hop/Rap"
+    },
+    {
+      "wrapperType": "track",
+      "kind": "song",
+      "artistName": "Naïka",
+      "collectionName": "ECLESIA",
+      "trackName": "SOLEIL",
+      "trackViewUrl": "https://music.apple.com/us/album/soleil/1852358411?i=1852358434&uo=4",
+      "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/b9/3a/a9/b93aa92c-2110-2ba8-10bd-7df89d9026fc/mzaf_7601311070023402722.plus.aac.p.m4a",
+      "trackTimeMillis": 204227,
+      "country": "USA",
+      "primaryGenreName": "Indie Pop"
+    },
+    {
+      "wrapperType": "track",
+      "kind": "song",
+      "artistName": "Françoise Hardy",
+      "collectionName": "Soleil",
+      "trackName": "Soleil",
+      "trackViewUrl": "https://music.apple.com/us/album/soleil/697187074?i=697187984&uo=4",
+      "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/07/7a/16/077a164c-f4cf-b716-e867-c838b358d288/mzaf_9590824833469639588.plus.aac.p.m4a",
+      "trackTimeMillis": 225227,
+      "country": "USA",
+      "primaryGenreName": "Pop"
+    }
+  ]
+}

@@ -13,9 +13,11 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
-    <!-- Référencé directement (et pas seulement en transitif via Http.Resilience) : les
-         pipelines non HTTP des canaux de notification appellent son API. -->
+    <!-- Référencés directement (et pas seulement en transitif via Http.Resilience) : le code
+         appelle leur API. Pipelines non HTTP des canaux de notification : -->
     <PackageReference Include="Polly.Extensions" />
+    <!-- Idem : les limiteurs de débit iTunes/MusicBrainz et leur exception de rejet. -->
+    <PackageReference Include="Polly.RateLimiting" />
   </ItemGroup>
 
 </Project>

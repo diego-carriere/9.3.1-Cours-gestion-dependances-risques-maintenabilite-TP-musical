@@ -1,0 +1,58 @@
+{
+  "created": "2026-10-08T09:59:10.920Z",
+  "count": 13963,
+  "offset": 0,
+  "recordings": [
+    {
+      "id": "f6ecd3ac-0260-48fc-bba0-fb25d5b44560",
+      "score": 100,
+      "title": "soleil soleil soleil",
+      "length": 107000,
+      "artist-credit": [
+        {
+          "name": "memo montañez",
+          "joinphrase": null,
+          "artist": {
+            "id": "9ea3add9-2fc7-4a1b-8a46-300204aa5ab7",
+            "name": "memo montañez",
+            "sort-name": "montañez, memo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "f932fc97-8653-414e-add6-a43b01356f76",
+      "score": 96,
+      "title": "Soleil Soleil",
+      "length": null,
+      "artist-credit": [
+        {
+          "name": "Ilya",
+          "joinphrase": null,
+          "artist": {
+            "id": "9e2cde4a-3241-45df-b122-f23ffcce7093",
+            "name": "Ilya",
+            "sort-name": "Ilya"
+          }
+        }
+      ]
+    },
+    {
+      "id": "185b9aa5-ff4d-4b64-8ff1-219f478f9a6e",
+      "score": 96,
+      "title": "Soleil, Soleil",
+      "length": 377000,
+      "artist-credit": [
+        {
+          "name": "Ilya",
+          "joinphrase": null,
+          "artist": {
+            "id": "9e2cde4a-3241-45df-b122-f23ffcce7093",
+            "name": "Ilya",
+            "sort-name": "Ilya"
+          }
+        }
+      ]
+    }
+  ]
+}

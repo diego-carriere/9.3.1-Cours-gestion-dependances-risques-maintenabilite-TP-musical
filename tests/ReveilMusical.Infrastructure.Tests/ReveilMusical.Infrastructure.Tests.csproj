@@ -9,6 +9,11 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- Réponses réelles capturées une fois (le 2026-10-08), puis rejouées hors ligne. -->
+  <ItemGroup>
+    <None Include="Fixtures\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="coverlet.MTP" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />

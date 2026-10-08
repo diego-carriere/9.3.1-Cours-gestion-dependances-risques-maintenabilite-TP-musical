@@ -16,6 +16,7 @@ dotnet build                     # échoue sur le moindre avertissement
 dotnet test                      # 259 tests, aucun appel réseau
 ./scripts/coverage.sh            # tests + seuil de couverture, rapport dans coverage/index.html
 ./licenses/audit.sh              # gate de licences (+ ./licenses/audit-canary.sh)
+./licenses/notices.sh            # avis de licence distribués avec l'image (THIRD-PARTY-NOTICES.txt)
 ./licenses/freshness.sh          # gate de fraîcheur
 dotnet run --project src/ReveilMusical.Api --urls http://localhost:5089
 ```
@@ -289,6 +290,7 @@ Exigence du brief : aucun composant externe sans vérification préalable de sa 
 | Contrôle | Commande | Bloque sur |
 |---|---|---|
 | Licences | `./licenses/audit.sh` | toute licence, directe ou transitive, absente de [`licenses/allowed-licenses.json`](licenses/allowed-licenses.json) (MIT, Apache-2.0, BSD-3-Clause) ou non identifiée. Le scan brut versionné, [`licenses/licenses.json`](licenses/licenses.json), doit être à jour (la CI le vérifie par `git diff`). |
+| Avis de licence | `./licenses/notices.sh` | un paquet distribué dont la licence n'a pas de texte, ni embarqué ni relu dans `licenses/texts/`. Le fichier généré, [`THIRD-PARTY-NOTICES.txt`](THIRD-PARTY-NOTICES.txt), est copié dans l'image Docker et doit être à jour (la CI le vérifie par `git diff`). |
 | Contrôle négatif | `./licenses/audit-canary.sh` | le gate doit refuser un paquet GPL-3.0, et pour sa licence : sinon il ne protège plus rien. |
 | Fraîcheur | `./licenses/freshness.sh` | paquet vulnérable ou déprécié (direct ou transitif), paquet direct en retard d'une version **majeure**. Un retard mineur n'est qu'un avertissement. En CI, le contrôle tourne aussi chaque semaine : un paquet devient périmé sans qu'on touche au code. |
 
@@ -337,7 +339,7 @@ BSD-3-Clause) ; le reste ne sert qu'aux tests ou est fourni par le framework par
 | `System.Threading.RateLimiting` 8.0.0 (transitif) | Version ancienne, tirée par `Polly.RateLimiting`. | Seulement dans le graphe de la bibliothèque Infrastructure : dans l'hôte, le framework partagé ASP.NET Core fournit sa propre version 10 (`dotnet nuget why src/ReveilMusical.Api ...` : aucune dépendance de paquet). Rien d'ancien n'est publié. |
 | `Microsoft.Bcl.AsyncInterfaces` 6.0.0 (transitif) | Version ancienne. | Tests uniquement, sans vulnérabilité ni dépréciation connue. |
 | xunit.v3 plutôt que xunit 2.x | xunit 2.x (TP-meteo) est en maintenance ; v3 impose Microsoft.Testing.Platform. | Choisi pour la fraîcheur. Conséquence : coverlet.MTP remplace coverlet.collector. |
-| Polly (BSD-3-Clause) | Obligation : reproduire l'avis de copyright dans la documentation d'une distribution binaire. | À joindre à toute distribution (image Docker comprise). |
+| Polly (BSD-3-Clause), paquets MIT distribués | Obligation : reproduire l'avis de copyright et la licence dans toute distribution binaire. | Remplie : `THIRD-PARTY-NOTICES.txt` couvre les 12 paquets publiés avec l'hôte (le texte embarqué par le paquet, sinon le copyright de son nuspec et le texte MIT), est copié dans l'image Docker et vérifié à jour en CI. |
 
 ## Services externes
 

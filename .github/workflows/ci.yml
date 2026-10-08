@@ -54,6 +54,10 @@ jobs:
       # Le scan versionné est celui du code actuel : un paquet ajouté sans relancer l'audit échoue.
       - run: git diff --exit-code -- licenses/licenses.json
 
+      # Avis de licence distribués avec l'image (MIT, BSD-3-Clause) : régénérés, et à jour.
+      - run: ./licenses/notices.sh
+      - run: git diff --exit-code -- THIRD-PARTY-NOTICES.txt
+
       # Contrôle négatif permanent : le gate doit refuser un paquet GPL-3.0.
       - run: ./licenses/audit-canary.sh
 

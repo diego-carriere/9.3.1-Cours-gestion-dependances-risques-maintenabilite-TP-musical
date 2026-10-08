@@ -19,6 +19,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
 
+# MIT et BSD-3-Clause : l'avis de copyright et la licence accompagnent toute distribution binaire.
+# Généré par licenses/notices.sh, vérifié à jour par la CI.
+COPY THIRD-PARTY-NOTICES.txt .
+
 # Les SDK simulés écrivent leurs envois dans outbox/ : le dossier doit appartenir à l'utilisateur
 # non-root de l'image.
 RUN mkdir -p /app/outbox && chown "$APP_UID" /app/outbox

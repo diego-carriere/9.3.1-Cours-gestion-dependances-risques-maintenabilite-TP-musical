@@ -38,7 +38,8 @@ architecture, the selection rule and the dependency review.
   every implementation of a port.
 - Licence gate: `licenses/audit.sh` (`nuget-license` as a local tool, a whitelist, CI failure on anything else,
   plus a GPL canary in `licenses/audit-canary.sh`). TP-meteo's `dotnet-project-licenses` was replaced: its repo
-  declares itself abandoned. Freshness gate: `licenses/freshness.sh`.
+  declares itself abandoned. Freshness gate: `licenses/freshness.sh`. Notices shipped in the image:
+  `licenses/notices.sh` regenerates `THIRD-PARTY-NOTICES.txt` (CI fails if it is stale).
 
 Commands, from the repo root, once the solution exists:
 

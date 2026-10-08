@@ -18,6 +18,9 @@ internal sealed class PushChannelAdapter : INotificationChannel
 
     public async Task<Result<DeliveryReceipt>> SendAsync(ContactAddress recipient, WakeUpMessage message, CancellationToken cancellationToken)
     {
+        // Le SDK ne prend pas de jeton : on n'envoie pas un push que l'appelant a déjà annulé.
+        cancellationToken.ThrowIfCancellationRequested();
+
         var completion = new TaskCompletionSource<PushDeliveryReport>(TaskCreationOptions.RunContinuationsAsynchronously);
         var payload = new Dictionary<string, string>(StringComparer.Ordinal)
         {

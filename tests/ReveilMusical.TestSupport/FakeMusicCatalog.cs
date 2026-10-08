@@ -48,6 +48,7 @@ public sealed class FakeMusicCatalog : IMusicCatalog
     public Task<Result<IReadOnlyList<Track>>> SearchAsync(TrackRequest request, CancellationToken cancellationToken)
     {
         Searches.Add(request);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (_exception is not null)
         {

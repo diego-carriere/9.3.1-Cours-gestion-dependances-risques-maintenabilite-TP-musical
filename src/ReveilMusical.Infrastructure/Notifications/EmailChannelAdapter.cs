@@ -32,13 +32,15 @@ internal sealed class EmailChannelAdapter : INotificationChannel
                 .ConfigureAwait(false);
             return Result.Success(new DeliveryReceipt(messageId));
         }
+        // Le type d'échec du SDK, pas son message : celui-ci répète l'adresse, et le texte d'erreur
+        // part dans les journaux, l'alerte et la réponse HTTP.
         catch (MailDeliveryException ex) when (ex.Failure == MailDeliveryFailure.InvalidRecipient)
         {
-            return Result.Failure<DeliveryReceipt>(ErrorKind.InvalidContact, $"Adresse email refusée : {ex.Message}");
+            return Result.Failure<DeliveryReceipt>(ErrorKind.InvalidContact, "Adresse email refusée par le serveur mail.");
         }
         catch (MailDeliveryException ex)
         {
-            return Result.Failure<DeliveryReceipt>(ErrorKind.ChannelUnavailable, $"Serveur mail indisponible : {ex.Message}");
+            return Result.Failure<DeliveryReceipt>(ErrorKind.ChannelUnavailable, $"Serveur mail indisponible ({ex.Failure}).");
         }
     }
 }

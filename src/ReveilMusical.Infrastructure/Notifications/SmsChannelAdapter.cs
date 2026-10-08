@@ -27,8 +27,9 @@ internal sealed class SmsChannelAdapter : INotificationChannel
         return response.StatusCode switch
         {
             SmsStatusCodes.Accepted when response.MessageId is not null => Result.Success(new DeliveryReceipt(response.MessageId)),
+            // Sans le numéro : ce message part dans les journaux, l'alerte et la réponse HTTP.
             SmsStatusCodes.InvalidNumber => Result.Failure<DeliveryReceipt>(
-                ErrorKind.InvalidContact, $"Numéro refusé par la passerelle SMS : '{recipient.Value}'."),
+                ErrorKind.InvalidContact, "Numéro refusé par la passerelle SMS."),
             _ => Result.Failure<DeliveryReceipt>(
                 ErrorKind.ChannelUnavailable,
                 $"Passerelle SMS : statut {response.StatusCode.ToString(CultureInfo.InvariantCulture)}."),

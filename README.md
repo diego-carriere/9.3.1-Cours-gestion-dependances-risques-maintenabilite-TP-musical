@@ -247,6 +247,10 @@ une panne (réessai, disjoncteur). En dernier filet côté métier, `Notificatio
 l'annulation demandée par l'appelant se propage. La traduction en HTTP tient dans un seul fichier,
 `Errors/WakeUpErrorMapper.cs`.
 
+Un message d'erreur ne répète jamais une coordonnée (numéro, adresse, jeton d'appareil) : il part
+dans les journaux, dans l'alerte opérateur et dans `attempts[].detail` de la réponse. Données
+personnelles, Support J2. La suite de contrat des canaux le vérifie sur chaque adaptateur.
+
 | Situation | HTTP |
 |---|---|
 | Entrée invalide (champ absent, jour ou météo inconnus, JSON illisible) | 400, `ProblemDetails` qui nomme chaque champ fautif |

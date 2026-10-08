@@ -113,6 +113,12 @@ public sealed class ITunesCatalogTests : MusicCatalogContractTests, IDisposable
         return CreateSut();
     }
 
+    protected override IMusicCatalog CreateSutWithAMatch()
+    {
+        _handler.Enqueue(Fixture.Json(Fixture.Read("itunes-search-soleil.json"), "text/javascript"));
+        return CreateSut();
+    }
+
     private ITunesCatalog CreateSut() => new(
         new HttpClient(_handler) { BaseAddress = new Uri("https://itunes.test/") },
         Microsoft.Extensions.Options.Options.Create(new ITunesOptions()),

@@ -40,6 +40,7 @@ public sealed class FakeNotificationChannel : INotificationChannel
     public Task<Result<DeliveryReceipt>> SendAsync(ContactAddress recipient, WakeUpMessage message, CancellationToken cancellationToken)
     {
         Attempts++;
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (_exception is not null)
         {

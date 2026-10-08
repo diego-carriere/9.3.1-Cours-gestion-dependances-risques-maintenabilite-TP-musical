@@ -106,6 +106,8 @@ public sealed class CachedMusicCatalogContractTests : MusicCatalogContractTests,
 
     protected override IMusicCatalog CreateSutWithNoMatch() => Wrap(new FakeMusicCatalog());
 
+    protected override IMusicCatalog CreateSutWithAMatch() => Wrap(new FakeMusicCatalog().Returns(SampleRequest, new Track("Soleil", "GIMS")));
+
     private CachedMusicCatalog Wrap(IMusicCatalog inner) => new(
         inner, "p", _cache, new FakeClock(DateTimeOffset.UnixEpoch),
         Microsoft.Extensions.Options.Options.Create(new MusicCacheOptions()), NullLogger<CachedMusicCatalog>.Instance);

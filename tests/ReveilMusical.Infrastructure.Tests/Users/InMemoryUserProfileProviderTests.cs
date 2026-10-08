@@ -1,6 +1,5 @@
 using ReveilMusical.Domain.Abstractions;
 using ReveilMusical.Domain.Model;
-using ReveilMusical.Domain.Results;
 using ReveilMusical.Infrastructure.Users;
 using ReveilMusical.TestSupport;
 
@@ -37,18 +36,12 @@ public sealed class InMemoryUserProfileProviderTests : UserProfileProviderContra
         Assert.Equal("Wake Me Up — Avicii", FirstChoice(profile, DayOfWeek.Monday, WeatherCondition.Snowy));
     }
 
-    [Fact]
-    public async Task A_simulated_outage_is_an_unavailable_user_service()
-    {
-        var sut = new InMemoryUserProfileProvider(Microsoft.Extensions.Options.Options.Create(
-            new UserDirectoryOptions { Users = [Alice()], SimulateOutage = true }));
-
-        var result = await sut.GetAsync(UserId.Create("42").Value, TestContext.Current.CancellationToken);
-
-        Assert.Equal(ErrorKind.UserServiceUnavailable, result.Error.Kind);
-    }
-
     protected override IUserProfileProvider CreateSutKnowingUser42() => Create(Alice());
+
+    /// <summary>La panne simulée (<c>UserService:SimulateOutage</c>).</summary>
+    protected override IUserProfileProvider CreateSutWhoseServiceIsDown() =>
+        new InMemoryUserProfileProvider(Microsoft.Extensions.Options.Options.Create(
+            new UserDirectoryOptions { Users = [Alice()], SimulateOutage = true }));
 
     private static InMemoryUserProfileProvider Create(params UserRecord[] users) =>
         new(Microsoft.Extensions.Options.Options.Create(new UserDirectoryOptions { Users = [.. users] }));

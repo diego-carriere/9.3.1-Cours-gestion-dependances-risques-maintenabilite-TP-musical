@@ -112,6 +112,8 @@ public sealed class FailoverMusicCatalogContractTests : MusicCatalogContractTest
 
     protected override IMusicCatalog CreateSutWithNoMatch() => Create(new FakeMusicCatalog());
 
+    protected override IMusicCatalog CreateSutWithAMatch() => Create(new FakeMusicCatalog().Returns(SampleRequest, new Track("Soleil", "GIMS")));
+
     private static FailoverMusicCatalog Create(IMusicCatalog only)
     {
         var services = new ServiceCollection();

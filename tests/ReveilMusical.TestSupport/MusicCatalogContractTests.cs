@@ -20,6 +20,28 @@ public abstract class MusicCatalogContractTests
     /// <summary>Une instance dont le fournisseur répond, mais sans aucun résultat.</summary>
     protected abstract IMusicCatalog CreateSutWithNoMatch();
 
+    /// <summary>Une instance dont le fournisseur trouve <see cref="SampleRequest"/>.</summary>
+    protected abstract IMusicCatalog CreateSutWithAMatch();
+
+    [Fact]
+    public async Task A_known_track_returns_at_least_one_track()
+    {
+        var result = await CreateSutWithAMatch().SearchAsync(SampleRequest, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotEmpty(result.Value);
+    }
+
+    [Fact]
+    public async Task A_cancellation_requested_by_the_caller_propagates_never_a_failure()
+    {
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            CreateSutWithAMatch().SearchAsync(SampleRequest, cancellation.Token));
+    }
+
     [Fact]
     public async Task An_unreachable_provider_is_an_expected_failure_never_an_exception()
     {

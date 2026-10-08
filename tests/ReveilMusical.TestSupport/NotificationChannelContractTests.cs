@@ -7,7 +7,8 @@ namespace ReveilMusical.TestSupport;
 
 /// <summary>
 /// Contrat commun à tout <see cref="INotificationChannel"/> : chaque adaptateur ramène son SDK
-/// (exception, code de statut, callback...) à ces trois comportements, sans jamais lever.
+/// (exception, code de statut, callback...) à ces comportements, sans jamais lever pour un échec
+/// attendu. Seule l'annulation demandée par l'appelant se propage.
 /// </summary>
 public abstract class NotificationChannelContractTests
 {
@@ -49,5 +50,27 @@ public abstract class NotificationChannelContractTests
 
         Assert.True(result.IsFailure);
         Assert.Equal(ErrorKind.InvalidContact, result.Error.Kind);
+    }
+
+    /// <summary>
+    /// RGPD : le message d'erreur part dans les journaux, dans l'alerte opérateur et dans la réponse
+    /// HTTP. Il ne répète donc pas la coordonnée (numéro, adresse, jeton).
+    /// </summary>
+    [Fact]
+    public async Task A_rejected_contact_is_not_repeated_in_the_error_message()
+    {
+        var result = await CreateWorkingSut().SendAsync(InvalidContact, SampleMessage, CancellationToken.None);
+
+        Assert.DoesNotContain(InvalidContact.Value, result.Error.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task A_cancellation_requested_by_the_caller_propagates_never_a_failure()
+    {
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            CreateWorkingSut().SendAsync(ValidContact, SampleMessage, cancellation.Token));
     }
 }

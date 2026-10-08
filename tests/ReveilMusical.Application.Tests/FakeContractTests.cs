@@ -13,6 +13,8 @@ public sealed class FakeMusicCatalogContractTests : MusicCatalogContractTests
     protected override IMusicCatalog CreateSutWhoseProviderIsDown() => new FakeMusicCatalog().IsDown();
 
     protected override IMusicCatalog CreateSutWithNoMatch() => new FakeMusicCatalog();
+
+    protected override IMusicCatalog CreateSutWithAMatch() => new FakeMusicCatalog().Returns(SampleRequest, new Track("Soleil", "GIMS"));
 }
 
 public sealed class FakeNotificationChannelContractTests : NotificationChannelContractTests
@@ -31,6 +33,9 @@ public sealed class FakeUserProfileProviderContractTests : UserProfileProviderCo
 {
     protected override IUserProfileProvider CreateSutKnowingUser42() =>
         new FakeUserProfileProvider().With(new ProfileBuilder("42").Build());
+
+    protected override IUserProfileProvider CreateSutWhoseServiceIsDown() =>
+        new FakeUserProfileProvider().With(new ProfileBuilder("42").Build()).IsDown();
 }
 
 public sealed class FakeFallbackPlaylistContractTests : FallbackPlaylistContractTests

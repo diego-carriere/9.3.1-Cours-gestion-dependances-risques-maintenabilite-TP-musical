@@ -115,6 +115,12 @@ public sealed class MusicBrainzCatalogTests : MusicCatalogContractTests, IDispos
         return CreateSut();
     }
 
+    protected override IMusicCatalog CreateSutWithAMatch()
+    {
+        _handler.Enqueue(Fixture.Json(Fixture.Read("musicbrainz-recording-soleil.json")));
+        return CreateSut();
+    }
+
     private MusicBrainzCatalog CreateSut() => new(
         new HttpClient(_handler) { BaseAddress = new Uri("https://musicbrainz.test/") },
         Microsoft.Extensions.Options.Options.Create(new MusicBrainzOptions { UserAgent = UserAgent }),

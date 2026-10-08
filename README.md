@@ -255,6 +255,22 @@ l'annulation demandée par l'appelant se propage. La traduction en HTTP tient da
 | Réveil remis, même en mode dégradé | 200 + rapport (`degraded: true` le cas échéant) |
 | Aucun canal n'a abouti | 503 + `Retry-After` + rapport complet (l'opérateur est déjà alerté) |
 
+### Budget de latence
+
+La durée d'un réveil est bornée par les délais configurés, pas par la connexion de l'ordonnanceur :
+
+- **musique** : au plus 8 s par fournisseur essayé (`Resilience:Music:*:TotalTimeout`), et trois
+  recherches au plus. Une panne de tous les fournisseurs (environ 16 s avec deux fournisseurs) mène
+  directement à la playlist locale ;
+- **canaux** : deux tentatives de 3 s par canal (`Resilience:Channels`), soit environ 6 s par canal
+  et 19 s pour une cascade de trois canaux tous en panne.
+
+Dans le pire cas, ce total dépasse un délai client courant de 30 s. Le réveil ne suit donc pas
+`RequestAborted` : un ordonnanceur qui raccroche ne l'annule pas (`SchedulerDisconnectTests`). Seul
+l'arrêt de l'hôte l'interrompt (`ApplicationStopping`), et l'alerte opérateur n'est jamais annulée.
+Un délai dépassé côté ordonnanceur veut dire « en cours », pas « à refaire » : le relancer peut
+réveiller deux fois (livraison au moins une fois, voir « Simplifications assumées »).
+
 ## Dépendances et licences
 
 Exigence du brief : aucun composant externe sans vérification préalable de sa **licence** et de sa

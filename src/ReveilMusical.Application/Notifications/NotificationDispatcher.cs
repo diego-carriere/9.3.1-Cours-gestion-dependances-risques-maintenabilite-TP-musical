@@ -50,7 +50,8 @@ public sealed partial class NotificationDispatcher
 
         var summary = $"Aucun canal n'a pu réveiller l'utilisateur {profile.Id} : " +
                       string.Join(", ", attempts.Select(a => $"{a.Channel} ({a.Status}: {a.Detail})")) + ".";
-        await _alerter.RaiseAsync(new OperatorAlert(profile.Id, summary), cancellationToken).ConfigureAwait(false);
+        // Jamais annulée : une alerte qui ne part pas, c'est le silence que le brief interdit.
+        await _alerter.RaiseAsync(new OperatorAlert(profile.Id, summary), CancellationToken.None).ConfigureAwait(false);
 
         return new DispatchOutcome(attempts, DeliveredOn: null, OperatorAlerted: true);
     }

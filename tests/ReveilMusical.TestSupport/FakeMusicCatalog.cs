@@ -12,6 +12,7 @@ public sealed class FakeMusicCatalog : IMusicCatalog
 {
     private readonly Dictionary<string, Result<IReadOnlyList<Track>>> _scripted = new(StringComparer.Ordinal);
     private DomainError? _outage;
+    private Exception? _exception;
 
     public List<TrackRequest> Searches { get; } = [];
 
@@ -37,9 +38,21 @@ public sealed class FakeMusicCatalog : IMusicCatalog
         return this;
     }
 
+    /// <summary>Simule un catalogue qui viole son contrat : il lève au lieu de renvoyer un échec.</summary>
+    public FakeMusicCatalog Throws(Exception exception)
+    {
+        _exception = exception;
+        return this;
+    }
+
     public Task<Result<IReadOnlyList<Track>>> SearchAsync(TrackRequest request, CancellationToken cancellationToken)
     {
         Searches.Add(request);
+
+        if (_exception is not null)
+        {
+            throw _exception;
+        }
 
         if (_outage is not null)
         {

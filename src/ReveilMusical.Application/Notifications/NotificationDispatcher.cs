@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using ReveilMusical.Application.Options;
 using ReveilMusical.Domain.Abstractions;
 using ReveilMusical.Domain.Model;
+using ReveilMusical.Domain.Results;
 
 namespace ReveilMusical.Application.Notifications;
 
@@ -73,7 +74,7 @@ public sealed partial class NotificationDispatcher
             return new DeliveryAttempt(channel, DeliveryStatus.NotRegistered, null);
         }
 
-        var sent = await implementation.SendAsync(contact, message, cancellationToken).ConfigureAwait(false);
+        var sent = await SendAsync(implementation, channel, contact, message, cancellationToken).ConfigureAwait(false);
 
         if (sent.IsSuccess)
         {
@@ -83,6 +84,28 @@ public sealed partial class NotificationDispatcher
         LogDeliveryFailed(channel.Value, sent.Error.Kind.ToString(), sent.Error.Message);
         return new DeliveryAttempt(channel, DeliveryStatus.Failed, sent.Error.Message);
     }
+
+    /// <summary>
+    /// Filet du métier, indépendant de l'Infrastructure : un canal qui lève malgré son contrat (bug,
+    /// panne imprévue) compte comme un échec, et la cascade continue. Seule l'annulation demandée par
+    /// l'appelant se propage.
+    /// </summary>
+    private async Task<Result<DeliveryReceipt>> SendAsync(
+        INotificationChannel implementation, ChannelId channel, ContactAddress contact, WakeUpMessage message, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await implementation.SendAsync(contact, message, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            LogChannelThrew(ex, channel.Value);
+            return Result.Failure<DeliveryReceipt>(ErrorKind.ChannelUnavailable, "Erreur inattendue du canal.");
+        }
+    }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Channel '{Channel}' threw instead of returning a result.")]
+    private partial void LogChannelThrew(Exception exception, string channel);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "No notification channel is registered under '{Channel}'.")]
     private partial void LogNotRegistered(string channel);

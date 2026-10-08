@@ -111,6 +111,44 @@ public sealed class NotificationDispatcherTests
     }
 
     [Fact]
+    public async Task A_channel_that_throws_counts_as_a_failure_and_the_cascade_goes_on()
+    {
+        _push.Throws(new IOException("disk full"));
+        var profile = new ProfileBuilder().Prefers("push").WithContact("push", "t").WithContact("sms", "+33612345678").Build();
+
+        var outcome = await CreateSut().DispatchAsync(profile, Message, CancellationToken.None);
+
+        Assert.Equal(Channel("sms"), outcome.DeliveredOn);
+        Assert.Equal(new DeliveryAttempt(Channel("push"), DeliveryStatus.Failed, "Erreur inattendue du canal."), outcome.Attempts[0]);
+        Assert.Empty(_alerter.Alerts);
+    }
+
+    [Fact]
+    public async Task When_every_channel_throws_the_operator_is_still_alerted()
+    {
+        _push.Throws(new InvalidOperationException("bug"));
+        _sms.Throws(new IOException("disk full"));
+        var profile = new ProfileBuilder().Prefers("push").WithContact("push", "t").WithContact("sms", "+33612345678").Build();
+
+        var outcome = await CreateSut().DispatchAsync(profile, Message, CancellationToken.None);
+
+        Assert.Null(outcome.DeliveredOn);
+        Assert.True(outcome.OperatorAlerted);
+        Assert.Single(_alerter.Alerts);
+    }
+
+    [Fact]
+    public async Task A_cancellation_requested_by_the_caller_is_not_swallowed()
+    {
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+        _sms.Throws(new OperationCanceledException(cancellation.Token));
+        var profile = new ProfileBuilder().Prefers("sms").WithContact("sms", "+33612345678").Build();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => CreateSut().DispatchAsync(profile, Message, cancellation.Token));
+    }
+
+    [Fact]
     public async Task Without_fallback_channels_only_the_preferred_one_is_tried()
     {
         _sms.FailsWith(ErrorKind.ChannelUnavailable);

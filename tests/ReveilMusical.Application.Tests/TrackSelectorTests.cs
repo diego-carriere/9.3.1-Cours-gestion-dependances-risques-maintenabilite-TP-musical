@@ -114,5 +114,28 @@ public sealed class TrackSelectorTests
         Assert.Equal(new TrackChoice(FakeFallbackPlaylist.DefaultTrack, TrackSource.LocalPlaylist, PreferenceLevel.DayAndWeather, null), choice);
     }
 
+    [Fact]
+    public async Task A_catalog_that_throws_still_wakes_the_user_with_the_local_playlist()
+    {
+        _catalog.Throws(new InvalidOperationException("bug d'adaptateur"));
+        var profile = new ProfileBuilder().ForWeather(WeatherCondition.Rainy, "Set Fire to the Rain").Build();
+
+        var choice = await CreateSut().SelectAsync(profile, DayOfWeek.Tuesday, WeatherCondition.Rainy, CancellationToken.None);
+
+        Assert.Equal(new TrackChoice(FakeFallbackPlaylist.DefaultTrack, TrackSource.LocalPlaylist, PreferenceLevel.Weather, null), choice);
+    }
+
+    [Fact]
+    public async Task A_cancellation_requested_by_the_caller_is_not_swallowed()
+    {
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+        _catalog.Throws(new OperationCanceledException(cancellation.Token));
+        var profile = new ProfileBuilder().Build();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            CreateSut().SelectAsync(profile, DayOfWeek.Tuesday, WeatherCondition.Rainy, cancellation.Token));
+    }
+
     private TrackSelector CreateSut() => new(_catalog, _playlist, NullLogger<TrackSelector>.Instance);
 }

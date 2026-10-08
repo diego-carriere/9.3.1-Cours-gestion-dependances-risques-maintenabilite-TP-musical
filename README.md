@@ -174,6 +174,8 @@ dictionnaire n'ont pas besoin d'une Chain of Responsibility.
 | Fournisseur en panne, recherche déjà faite | Résultat périmé servi depuis le cache | `trackSource: catalog` |
 | Tous les fournisseurs en panne | Playlist locale | `trackSource: local-playlist`, `degraded: true` |
 | Canal préféré en panne | Canal suivant de la cascade | `channel` ≠ canal préféré, `degraded: true` |
+| Canal figé (SDK bloquant qui ignore l'annulation) | Délai par tentative imposé par le décorateur, puis canal suivant | tentative `failed` |
+| Canal qui lève (bug d'adaptateur, disque plein) | Échec de ce canal, puis canal suivant | tentative `failed` |
 | Tous les canaux en panne | Alerte opérateur (log `Critical`) | 503 + `Retry-After` |
 
 ## Correspondance cours → TP
@@ -238,7 +240,11 @@ de démarrer s'il y en avait une.
 
 `Result<T>` pour les échecs attendus (utilisateur inconnu, fournisseur ou canal en panne) : un
 adaptateur ne lève jamais pour eux, ce que les suites de contrat vérifient sur chaque
-implémentation. Les bugs lèvent toujours. La traduction en HTTP tient dans un seul fichier,
+implémentation. Un bug ou une panne imprévue (disque plein sous un SDK, adaptateur qui lève) lève
+bien, mais ne peut pas rendre le réveil silencieux. Le décorateur de chaque canal la traite comme
+une panne (réessai, disjoncteur). En dernier filet côté métier, `NotificationDispatcher` et
+`TrackSelector` la journalisent en `Error` et passent au canal suivant ou à la playlist locale. Seule
+l'annulation demandée par l'appelant se propage. La traduction en HTTP tient dans un seul fichier,
 `Errors/WakeUpErrorMapper.cs`.
 
 | Situation | HTTP |

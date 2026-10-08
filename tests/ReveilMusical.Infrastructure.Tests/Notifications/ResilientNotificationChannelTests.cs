@@ -56,6 +56,42 @@ public sealed class ResilientNotificationChannelTests
     }
 
     [Fact]
+    public async Task A_channel_that_ignores_the_token_is_still_bounded_by_the_timeout()
+    {
+        var sut = Wrap(new NonCooperativeChannel(), FastOptions with { RetryCount = 0 });
+
+        var result = await sut.SendAsync(Contact, Message, TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        Assert.Equal(ErrorKind.Timeout, result.Error.Kind);
+    }
+
+    [Fact]
+    public async Task An_unexpected_exception_is_retried_then_becomes_an_unavailable_channel()
+    {
+        var inner = new FakeNotificationChannel().Throws(new IOException("disk full: +33612345678"));
+
+        var result = await Wrap(inner).SendAsync(Contact, Message, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ErrorKind.ChannelUnavailable, result.Error.Kind);
+        Assert.Equal("Canal 'sms' : erreur inattendue (IOException).", result.Error.Message);
+        Assert.Equal(2, inner.Attempts);
+    }
+
+    [Fact]
+    public async Task Repeated_unexpected_exceptions_open_the_circuit()
+    {
+        var inner = new FakeNotificationChannel().Throws(new IOException("disk full"));
+        var sut = Wrap(inner, FastOptions with { RetryCount = 0 });
+
+        await sut.SendAsync(Contact, Message, TestContext.Current.CancellationToken);
+        await sut.SendAsync(Contact, Message, TestContext.Current.CancellationToken);
+        var third = await sut.SendAsync(Contact, Message, TestContext.Current.CancellationToken);
+
+        Assert.Contains("circuit", third.Error.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(2, inner.Attempts);
+    }
+
+    [Fact]
     public async Task Once_the_circuit_is_open_the_channel_fails_fast_without_calling_the_service()
     {
         var inner = new FakeNotificationChannel().FailsWith(ErrorKind.ChannelUnavailable);
@@ -99,6 +135,16 @@ public sealed class ResilientNotificationChannelTests
             return Task.FromResult(Calls <= failuresBeforeSuccess
                 ? Result.Failure<DeliveryReceipt>(ErrorKind.ChannelUnavailable, "flaky")
                 : Result.Success(new DeliveryReceipt("ok")));
+        }
+    }
+
+    /// <summary>Un adaptateur qui bloque sans jamais regarder le jeton, comme un SDK synchrone figé.</summary>
+    private sealed class NonCooperativeChannel : INotificationChannel
+    {
+        public async Task<Result<DeliveryReceipt>> SendAsync(ContactAddress recipient, WakeUpMessage message, CancellationToken cancellationToken)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(30), CancellationToken.None);
+            return Result.Success(new DeliveryReceipt("too late"));
         }
     }
 

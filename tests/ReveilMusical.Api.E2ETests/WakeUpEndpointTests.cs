@@ -113,6 +113,32 @@ public sealed class WakeUpEndpointTests
         Assert.Contains(factory.Logs.Entries, e => e.Level == LogLevel.Critical && e.Message.Contains("user 42", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public async Task A_channel_that_crashes_ends_in_an_alert_never_in_a_bare_500()
+    {
+        // Le dossier de sortie du mail est un fichier : le SDK lève une IOException que son
+        // adaptateur ne traduit pas. Chloé n'a que l'email : on attend une alerte, pas un 500.
+        var notADirectory = Path.GetTempFileName();
+        try
+        {
+            await using var factory = new ReveilApiFactory(new Dictionary<string, string?> { ["Vendors:Mail:OutboxDirectory"] = notADirectory });
+            factory.Upstream.FixtureFor(FakeUpstream.ITunesHost, "itunes-search-soleil.json");
+
+            var response = await factory.CreateClient().WakeUpAsync("13", "MARDI", "SOLEIL");
+            var json = await response.JsonAsync();
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+            Assert.Equal("email", json.Str("notification.attempts.0.channel"));
+            Assert.Equal("failed", json.Str("notification.attempts.0.status"));
+            Assert.Equal("true", json.Str("notification.operatorAlerted"));
+            Assert.Contains(factory.Logs.Entries, e => e.Level == LogLevel.Critical && e.Message.Contains("user 13", StringComparison.Ordinal));
+        }
+        finally
+        {
+            File.Delete(notADirectory);
+        }
+    }
+
     [Theory]
     [InlineData("""{"day":"MARDI","weather":"SOLEIL"}""", "userId")]
     [InlineData("""{"userId":"42","day":"MARDI","weather":"BROUILLARD"}""", "weather")]

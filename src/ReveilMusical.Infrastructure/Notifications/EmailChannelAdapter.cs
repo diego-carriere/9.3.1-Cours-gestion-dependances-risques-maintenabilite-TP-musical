@@ -8,7 +8,8 @@ namespace ReveilMusical.Infrastructure.Notifications;
 
 /// <summary>
 /// Adapter : ramène le SDK mail (synchrone, exceptions) à <see cref="INotificationChannel"/>
-/// (asynchrone, <see cref="Result{T}"/>). L'appel bloquant part sur le pool de threads.
+/// (asynchrone, <see cref="Result{T}"/>). L'appel bloquant part sur le pool de threads, et l'attente
+/// respecte le jeton : <c>Task.Run</c> seul n'annule qu'avant le démarrage.
 /// </summary>
 internal sealed class EmailChannelAdapter : INotificationChannel
 {
@@ -26,7 +27,9 @@ internal sealed class EmailChannelAdapter : INotificationChannel
 
         try
         {
-            var messageId = await Task.Run(() => _client.Send(envelope), cancellationToken).ConfigureAwait(false);
+            var messageId = await Task.Run(() => _client.Send(envelope), cancellationToken)
+                .WaitAsync(cancellationToken)
+                .ConfigureAwait(false);
             return Result.Success(new DeliveryReceipt(messageId));
         }
         catch (MailDeliveryException ex) when (ex.Failure == MailDeliveryFailure.InvalidRecipient)

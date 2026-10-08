@@ -1,7 +1,6 @@
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Retry;
-using Polly.Timeout;
 using ReveilMusical.Domain.Model;
 using ReveilMusical.Domain.Results;
 
@@ -23,8 +22,7 @@ internal static class ChannelResiliencePipelines
                 MaxRetryAttempts = options.RetryCount,
                 Delay = options.RetryDelay,
                 BackoffType = DelayBackoffType.Constant,
-                ShouldHandle = static args => ValueTask.FromResult(
-                    args.Outcome.Exception is not BrokenCircuitException && IsTransient(args.Outcome)),
+                ShouldHandle = static args => ValueTask.FromResult(IsTransient(args.Outcome)),
             });
         }
 
@@ -40,10 +38,13 @@ internal static class ChannelResiliencePipelines
             .AddTimeout(options.AttemptTimeout);
     }
 
-    // Une coordonnée invalide n'est pas transitoire : ni réessai, ni impact sur le disjoncteur.
-    private static bool IsTransient(Outcome<Result<DeliveryReceipt>> outcome) =>
-        outcome.Exception is TimeoutRejectedException
-        || (outcome.Exception is null
-            && outcome.Result.IsFailure
-            && outcome.Result.Error.Kind is ErrorKind.ChannelUnavailable or ErrorKind.Timeout);
+    // Une coordonnée invalide n'est pas transitoire : ni réessai, ni impact sur le disjoncteur. Une
+    // exception imprévue (disque plein, bug d'adaptateur) l'est : elle peut passer au réessai, et
+    // sa répétition doit ouvrir le disjoncteur. Un circuit ouvert ou une annulation ne se réessaient pas.
+    private static bool IsTransient(Outcome<Result<DeliveryReceipt>> outcome) => outcome.Exception switch
+    {
+        null => outcome.Result.IsFailure && outcome.Result.Error.Kind is ErrorKind.ChannelUnavailable or ErrorKind.Timeout,
+        BrokenCircuitException or OperationCanceledException => false,
+        _ => true,
+    };
 }

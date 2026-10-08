@@ -4,11 +4,14 @@ using ReveilMusical.Domain.Results;
 
 namespace ReveilMusical.TestSupport;
 
-/// <summary>Canal scripté : réussit par défaut, échoue sur demande, et garde la trace de chaque envoi.</summary>
+/// <summary>
+/// Canal scripté : réussit par défaut, échoue ou lève sur demande, et garde la trace de chaque envoi.
+/// </summary>
 public sealed class FakeNotificationChannel : INotificationChannel
 {
     private readonly HashSet<string> _rejectedContacts = new(StringComparer.Ordinal);
     private DomainError? _failure;
+    private Exception? _exception;
 
     public List<(ContactAddress Recipient, WakeUpMessage Message)> Sent { get; } = [];
 
@@ -17,6 +20,13 @@ public sealed class FakeNotificationChannel : INotificationChannel
     public FakeNotificationChannel FailsWith(ErrorKind kind)
     {
         _failure = new DomainError(kind, $"Échec scripté ({kind}).");
+        return this;
+    }
+
+    /// <summary>Simule un adaptateur qui viole son contrat : il lève au lieu de renvoyer un échec.</summary>
+    public FakeNotificationChannel Throws(Exception exception)
+    {
+        _exception = exception;
         return this;
     }
 
@@ -30,6 +40,11 @@ public sealed class FakeNotificationChannel : INotificationChannel
     public Task<Result<DeliveryReceipt>> SendAsync(ContactAddress recipient, WakeUpMessage message, CancellationToken cancellationToken)
     {
         Attempts++;
+
+        if (_exception is not null)
+        {
+            throw _exception;
+        }
 
         if (_rejectedContacts.Contains(recipient.Value))
         {

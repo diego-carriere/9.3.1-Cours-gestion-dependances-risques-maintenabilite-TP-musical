@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using ReveilMusical.Domain.Abstractions;
 using ReveilMusical.Domain.Model;
+using ReveilMusical.Domain.Results;
 
 namespace ReveilMusical.Application.Music;
 
@@ -32,7 +33,7 @@ public sealed partial class TrackSelector
 
         foreach (var (request, level) in candidates)
         {
-            var search = await _catalog.SearchAsync(request, cancellationToken).ConfigureAwait(false);
+            var search = await SearchAsync(request, cancellationToken).ConfigureAwait(false);
 
             if (search.IsFailure)
             {
@@ -53,8 +54,28 @@ public sealed partial class TrackSelector
         return FromLocalPlaylist(weather, candidates[0].Level);
     }
 
+    /// <summary>
+    /// Filet du métier : un catalogue qui lève malgré son contrat compte comme une panne, ce qui
+    /// mène à la playlist locale. Seule l'annulation demandée par l'appelant se propage.
+    /// </summary>
+    private async Task<Result<IReadOnlyList<Track>>> SearchAsync(TrackRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _catalog.SearchAsync(request, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            LogCatalogThrew(ex);
+            return Result.Failure<IReadOnlyList<Track>>(ErrorKind.ProviderUnavailable, "Erreur inattendue du catalogue musical.");
+        }
+    }
+
     private TrackChoice FromLocalPlaylist(WeatherCondition weather, PreferenceLevel level) =>
         new(_fallbackPlaylist.Pick(weather), TrackSource.LocalPlaylist, level, null);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Music catalog threw instead of returning a result.")]
+    private partial void LogCatalogThrew(Exception exception);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Music catalog unavailable ({Reason}); using the local playlist.")]
     private partial void LogCatalogUnavailable(string reason);
